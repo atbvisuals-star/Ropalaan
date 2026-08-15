@@ -86,8 +86,10 @@ main{max-width:640px;margin:0 auto;padding:18px 16px 70px}
 .dest-row .cdmini{font-family:var(--mono);font-size:11px;color:var(--accent);flex:0 0 auto;padding-top:2px;white-space:nowrap}
 
 /* ---------- itinerary accordion (voyage > étape > jours) ---------- */
-.trip-head, .stage-head{display:flex;align-items:center;gap:6px;padding:14px 3px;border-top:1px solid rgba(255,255,255,.07)}
-.trip-head:first-child, .stage-head:first-child{border-top:none}
+.trip-card{padding:2px 0}
+.trip-head{display:flex;align-items:center;gap:6px;padding:12px 14px}
+.stage-head{display:flex;align-items:center;gap:6px;padding:12px 3px;border-top:1px solid rgba(255,255,255,.07)}
+.stage-head:first-child{border-top:none}
 .trip-head-main, .stage-head-main{flex:1;min-width:0;text-align:left;background:none;border:none;color:inherit;padding:0}
 .trip-head .sname{font-size:17px;font-weight:700;letter-spacing:-.01em}
 .stage-head .sname{font-size:15.5px;font-weight:640;letter-spacing:-.01em}
@@ -97,7 +99,7 @@ main{max-width:640px;margin:0 auto;padding:18px 16px 70px}
 .icon-btn:hover{background:rgba(255,255,255,.06);color:var(--text)}
 .icon-btn.danger:hover{color:var(--bad)}
 .chev{font-family:var(--mono);color:var(--accent);font-size:16px;flex:0 0 auto;width:20px;text-align:center}
-.trip-body{padding:0 0 6px 14px;border-left:1px solid rgba(255,255,255,.07);margin-left:6px}
+.trip-body{padding:0 14px 10px 20px;border-left:1px solid rgba(255,255,255,.08);margin-left:20px}
 .stage-body{padding:2px 0 8px}
 
 /* transparent glass card, reused for a day and for a budget category */
@@ -641,7 +643,7 @@ function tripSection(x){
     }
     html += `<div class="trip-body">${inner}</div>`;
   }
-  return html;
+  return `<div class="gcard trip-card">${html}</div>`;
 }
 
 function renderItineraire(){
@@ -963,6 +965,12 @@ function openDrawer(title, bodyHTML, buttons){
   const f = $("#dBody").querySelector("input,select,textarea"); if(f) f.focus();
 }
 function closeDrawer(){ $("#scrim").hidden = true; $("#drawer").hidden = true; }
+function confirmAction(message, onYes){
+  openDrawer("Confirmer", `<div style="padding:2px 0 10px;font-size:14px">${esc(message)}</div>`, [
+    {label:"Confirmer", cls:"danger", act:()=>{ closeDrawer(); onYes(); }},
+    {label:"Annuler", act:closeDrawer}
+  ]);
+}
 $("#scrim").addEventListener("click", closeDrawer);
 document.addEventListener("keydown", e => { if(e.key==="Escape" && !$("#drawer").hidden) closeDrawer(); });
 function stageOpts(sel){ const t = trip(); return `<option value="">— aucune étape —</option>` + t.stages.map(s => `<option value="${s.id}" ${s.id===sel?"selected":""}>${esc(s.name)}</option>`).join(""); }
@@ -1054,12 +1062,13 @@ function editStage(id, fromSettings){
   $("#btnClr").onclick = () => { img = ""; $("#thumbImg").style.display="none"; };
 }
 function delStage(id, fromSettings){
-  const t = trip();
-  if(!confirm("Retirer cette étape ? Les activités et postes rattachés seront conservés, mais détachés.")) return;
-  t.stages = t.stages.filter(s=>s.id!==id);
-  t.acts.forEach(a=>{ if(a.stage===id) a.stage=""; });
-  t.budget.forEach(b=>{ if(b.stage===id) b.stage=""; });
-  save(); closeDrawer(); if(fromSettings) openTripSettings(); else render();
+  confirmAction("Retirer cette étape ? Les activités et postes rattachés seront conservés, mais détachés.", ()=>{
+    const t = trip();
+    t.stages = t.stages.filter(s=>s.id!==id);
+    t.acts.forEach(a=>{ if(a.stage===id) a.stage=""; });
+    t.budget.forEach(b=>{ if(b.stage===id) b.stage=""; });
+    save(); if(fromSettings) openTripSettings(); else render();
+  });
 }
 
 function switchTrip(id){ db.activeId = id; expanded.clear(); expandedInit = false; expandedHi.clear(); expandedHiInit = false; expandedTripId = id; save(); closeDrawer(); render(); }
@@ -1073,11 +1082,12 @@ function dupTrip(id){ const src = db.trips.find(t=>t.id===id); const c = JSON.pa
 function delTrip(id){
   const t = db.trips.find(x=>x.id===id);
   if(!t) return;
-  if(!confirm(`Supprimer « ${t.name} » ? Cette action est définitive.`)) return;
-  db.trips = db.trips.filter(x=>x.id!==id);
-  if(db.activeId===id) db.activeId = db.trips[0]?.id || null;
-  if(expandedTripId===id) expandedTripId = db.activeId;
-  save(); closeDrawer(); render(); toast("Voyage supprimé");
+  confirmAction(`Supprimer « ${t.name} » ? Cette action est définitive.`, ()=>{
+    db.trips = db.trips.filter(x=>x.id!==id);
+    if(db.activeId===id) db.activeId = db.trips[0]?.id || null;
+    if(expandedTripId===id) expandedTripId = db.activeId;
+    save(); render(); toast("Voyage supprimé");
+  });
 }
 function exportJSON(){
   const blob = new Blob([JSON.stringify(db,null,2)], {type:"application/json"});
@@ -1093,9 +1103,10 @@ function importJSON(){
       try{
         const d = JSON.parse(rd.result);
         if(!d.trips || !Array.isArray(d.trips)) throw 0;
-        if(!confirm("Remplacer les données actuelles par le fichier importé ?")) return;
-        db = migrate(d); if(!db.trips.find(t=>t.id===db.activeId)) db.activeId = db.trips[0].id;
-        save(); closeDrawer(); render(); toast("Données importées");
+        confirmAction("Remplacer les données actuelles par le fichier importé ?", ()=>{
+          db = migrate(d); if(!db.trips.find(t=>t.id===db.activeId)) db.activeId = db.trips[0].id;
+          save(); render(); toast("Données importées");
+        });
       }catch(e){ toast("Fichier illisible ou format inattendu"); }
     };
     rd.readAsText(f);
