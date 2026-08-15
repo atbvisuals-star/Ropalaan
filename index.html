@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ROPALAAN">
+<meta name="theme-color" content="#111110">
+<title>ROPALAAN</title>
+<style>
+:root{
+  --bg:#111110; --bg-alt:#191815; --line:#2b2a26; --line-soft:#211f1c;
+  --text:#eae7e1; --text-dim:#948f86; --text-faint:#5c5850;
+  --accent:#2dd4bf; --accent-ink:#0a1817; --warn:#c98a2e; --bad:#b5554a;
+  --r:6px; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(900px 460px at 10% -8%, rgba(45,212,191,.10), transparent 60%),
+    radial-gradient(760px 420px at 105% 18%, rgba(45,212,191,.06), transparent 55%)}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- top bar ---------- */
+header{position:sticky;top:0;z-index:40;background:var(--bg-alt);border-bottom:1px solid var(--line);
+  padding:11px 16px;padding-top:max(11px,env(safe-area-inset-top))}
+.hd-top{display:flex;align-items:baseline;gap:10px}
+.hd-name{font-weight:700;letter-spacing:.07em;font-size:16px;background:none;border:none;padding:0;cursor:pointer;color:var(--text);text-transform:uppercase}
+.hd-sub{flex:1;font-family:var(--mono);font-size:11px;color:var(--text-dim);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd-tabs{display:flex;align-items:center;gap:6px;margin-top:9px}
+.tabs-scroll{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;flex:1;min-width:0}
+.tabs-scroll::-webkit-scrollbar{display:none}
+.tab{font-size:12.5px;color:var(--text-dim);padding:6px 11px;border-radius:20px;white-space:nowrap;flex:0 0 auto}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--accent-ink);background:var(--accent);font-weight:600}
+.hd-menu{flex:0 0 auto;color:var(--text-dim);padding:6px 10px;border:1px solid var(--line);border-radius:20px;font-size:12.5px}
+.hd-menu:hover{color:var(--text);border-color:var(--text-faint)}
+
+main{max-width:640px;margin:0 auto;padding:18px 16px 70px}
+.view[hidden]{display:none}
+.empty{color:var(--text-faint);font-size:13px;padding:22px 0;text-align:center}
+
+/* ---------- card shell (used on Accueil) ---------- */
+.card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:14px 15px;margin-bottom:10px;
+  backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.card .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-faint);margin-bottom:9px;display:flex;justify-content:space-between}
+.card .eyebrow a{color:var(--accent);font-size:11px;text-transform:none;letter-spacing:0}
+
+/* ---------- hero (transparent glass card) ---------- */
+.hero{position:relative;border-radius:9px;overflow:hidden;margin-bottom:12px;min-height:250px;
+  display:flex;align-items:flex-end;background:#201e19 center/cover no-repeat}
+.hero::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(to top, rgba(8,7,5,.82), rgba(8,7,5,.25) 55%, rgba(8,7,5,.05))}
+.hero .glass{position:relative;z-index:1;width:100%;margin:12px;padding:14px 16px;border-radius:7px;
+  background:rgba(19,17,13,.46);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);
+  border:1px solid rgba(255,255,255,.15)}
+.hero .dest{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(234,231,225,.7)}
+.hero .cd{font-family:var(--mono);font-size:30px;letter-spacing:-.03em;color:#fff;margin-top:2px}
+.hero .cd span{font-size:12px;color:rgba(234,231,225,.6);font-weight:400;margin-left:7px;letter-spacing:0}
+.hero .grows{margin-top:12px;border-top:1px solid rgba(255,255,255,.16);padding-top:8px}
+.hero .grow{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#fff}
+.hero .grow .k{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:rgba(234,231,225,.55);padding-top:2px}
+.hero .grow .v{font-family:var(--mono);text-align:right}
+.hero .cta{display:inline-block;margin-top:10px;font-size:12px;color:#fff;border:1px solid rgba(255,255,255,.35);
+  border-radius:20px;padding:5px 12px}
+
+/* ---------- formalités / hôtel cards content ---------- */
+.mini-task{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--line-soft);font-size:13px}
+.mini-task:first-child{border-top:none}
+.due{font-family:var(--mono);font-size:11px;flex:0 0 auto}
+.due.soon{color:var(--warn)} .due.late{color:var(--bad)} .due.ok{color:var(--text-faint)}
+.hotel-name{font-size:14.5px;font-weight:600}
+.hotel-addr{font-size:12.5px;color:var(--text-dim);margin-top:2px}
+.hotel-how{font-size:12.5px;color:var(--text-dim);margin-top:8px;padding-top:8px;border-top:1px solid var(--line-soft)}
+.dest-row{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--line-soft)}
+.dest-row:first-of-type{border-top:none}
+.dest-row .ti{font-size:13.5px}
+.dest-row .mt{font-size:11.5px;color:var(--text-faint);margin-top:1px}
+.dest-row .cdmini{font-family:var(--mono);font-size:11px;color:var(--accent);flex:0 0 auto;padding-top:2px;white-space:nowrap}
+
+/* ---------- itinerary accordion (voyage > étape > jours) ---------- */
+.trip-head, .stage-head{display:flex;align-items:center;gap:6px;padding:14px 3px;border-top:1px solid rgba(255,255,255,.07)}
+.trip-head:first-child, .stage-head:first-child{border-top:none}
+.trip-head-main, .stage-head-main{flex:1;min-width:0;text-align:left;background:none;border:none;color:inherit;padding:0}
+.trip-head .sname{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.stage-head .sname{font-size:15.5px;font-weight:640;letter-spacing:-.01em}
+.trip-head .smeta, .stage-head .smeta{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-top:3px}
+.icon-btn{flex:0 0 auto;width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  border-radius:6px;color:var(--text-dim);font-size:13px}
+.icon-btn:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.icon-btn.danger:hover{color:var(--bad)}
+.chev{font-family:var(--mono);color:var(--accent);font-size:16px;flex:0 0 auto;width:20px;text-align:center}
+.trip-body{padding:0 0 6px 14px;border-left:1px solid rgba(255,255,255,.07);margin-left:6px}
+.stage-body{padding:2px 0 8px}
+
+/* transparent glass card, reused for a day and for a budget category */
+.gcard{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:10px;
+  padding:13px 14px;margin-bottom:10px;backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+
+.day-head{display:flex;align-items:baseline;gap:9px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08)}
+.day-head .dnum{font-family:var(--mono);font-size:19px;letter-spacing:-.02em}
+.day-head .dwk{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-faint)}
+.day-empty{font-size:12px;color:var(--text-faint);padding:3px 0}
+
+.entry-act{display:flex;gap:9px;width:100%;text-align:left;padding:7px 0;align-items:center}
+.entry-act+.entry-act{border-top:1px solid rgba(255,255,255,.06)}
+.entry-act .ic{flex:0 0 18px;font-size:13px;text-align:center;opacity:.85}
+.entry-act .tm{font-family:var(--mono);font-size:11px;color:var(--text-dim);flex:0 0 34px}
+.entry-act .main{flex:1;min-width:0}
+.entry-act .ti{font-size:13px}
+.entry-act .ti .gyg{color:var(--accent);font-family:var(--mono);font-size:9px;letter-spacing:.05em;margin-left:6px;border:1px solid var(--accent);border-radius:3px;padding:1px 4px}
+.entry-act.done .ti{color:var(--text-faint);text-decoration:line-through}
+.entry-act .mt{display:block;font-size:11px;color:var(--text-faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry-act .thumb{width:30px;height:30px;border-radius:5px;object-fit:cover;flex:0 0 auto;border:1px solid rgba(255,255,255,.12)}
+.add-line{font-size:11.5px;color:var(--text-faint);padding:8px 0 0 27px}
+.add-line:hover{color:var(--accent)}
+
+/* ---------- budget : carte totale + cartes catégorie ---------- */
+.tot-card{margin-bottom:12px}
+.tot-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-faint)}
+.tot-num{font-family:var(--mono);font-size:32px;letter-spacing:-.03em;margin-top:5px}
+.tot-sub{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-top:3px}
+.tot-bar{height:4px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:11px}
+.tot-bar i{display:block;height:100%}
+
+.cat-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08)}
+.cat-name{font-size:13.5px;font-weight:620;display:flex;align-items:center;gap:7px}
+.cat-name .ic{font-size:13px;opacity:.85}
+.cat-sum{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
+
+.entry-bud{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;padding:7px 0}
+.entry-bud+.entry-bud{border-top:1px solid rgba(255,255,255,.06)}
+.entry-bud .main{min-width:0}
+.entry-bud .ti{font-size:13px}
+.entry-bud .mt{font-size:11px;color:var(--text-faint);margin-top:1px}
+.entry-bud .vals{text-align:right;flex:0 0 auto;font-family:var(--mono)}
+.entry-bud .p{font-size:12.5px}
+.entry-bud .a{font-size:10.5px;color:var(--text-faint);margin-top:1px}
+.entry-bud .a.over{color:var(--bad)}
+.perperson{text-align:right;font-size:11.5px;color:var(--text-faint);margin-top:4px;font-family:var(--mono)}
+
+/* ---------- tasks ledger ---------- */
+.entry-task{display:flex;gap:11px;padding:9px 0;border-top:1px solid var(--line-soft);align-items:flex-start}
+.entry-task:first-child{border-top:none}
+.entry-task input[type=checkbox]{width:16px;height:16px;flex:0 0 auto;margin-top:2px;accent-color:var(--accent)}
+.entry-task .main{flex:1;min-width:0;cursor:pointer}
+.entry-task.done .ti{color:var(--text-faint);text-decoration:line-through}
+.entry-task .ti{font-size:13.5px}
+.entry-task .mt{font-size:11.5px;color:var(--text-faint);margin-top:1px}
+
+/* ---------- carnet de voyage ---------- */
+.jcard{display:block;width:100%;text-align:left;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);
+  border-radius:10px;overflow:hidden;margin-bottom:12px;backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.jphoto{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:var(--bg-alt)}
+.jbody{padding:13px 14px}
+.jmeta{font-family:var(--mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-faint)}
+.jtitle{font-size:14.5px;font-weight:640;margin-top:4px}
+.jtext{font-size:13px;color:var(--text-dim);margin-top:7px;line-height:1.55;white-space:pre-wrap}
+
+/* ---------- shared controls ---------- */
+.btn{background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--r);padding:7px 12px;font-size:13px;color:var(--text)}
+.btn:hover{border-color:var(--text-faint)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.sec-add{font-size:12px;color:var(--accent)}
+label{display:block;margin-bottom:12px}
+label>span{display:block;font-size:12px;color:var(--text-dim);margin-bottom:4px}
+input,select,textarea{background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--r);padding:8px 9px;width:100%}
+textarea{resize:vertical;min-height:56px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hr{border-top:1px solid var(--line);margin:16px 0}
+.fieldnote{font-size:11.5px;color:var(--text-faint);margin:-6px 0 12px}
+
+/* ---------- drawer ---------- */
+.scrim{position:fixed;inset:0;background:#000a;z-index:50}
+.scrim[hidden]{display:none}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--bg-alt);
+  border-left:1px solid var(--line);z-index:51;display:flex;flex-direction:column}
+.drawer[hidden]{display:none}
+.drawer h2{font-size:16px;font-weight:640;letter-spacing:-.01em;padding:16px 16px 0}
+.drawer .body{overflow-y:auto;padding:16px;flex:1;-webkit-overflow-scrolling:touch}
+.drawer .foot{border-top:1px solid var(--line);padding:12px 16px;display:flex;gap:8px;
+  padding-bottom:max(12px,env(safe-area-inset-bottom))}
+.thumb-wrap{aspect-ratio:16/10;background:var(--bg);border:1px dashed var(--line);border-radius:var(--r);
+  overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.thumb-wrap img{width:100%;height:100%;object-fit:cover}
+.mini-list{border-top:1px solid var(--line);margin-top:4px}
+.mini-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.mini-row .sub{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:var(--bg-alt);
+  border:1px solid var(--line);border-radius:var(--r);padding:9px 15px;z-index:80;font-size:13px}
+.toast[hidden]{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hd-top">
+    <button class="hd-name" id="tripNameBtn" style="cursor:default">—</button>
+    <div class="hd-sub" id="tripSub"></div>
+  </div>
+  <div class="hd-tabs">
+    <div class="tabs-scroll">
+      <button class="tab" data-v="accueil">Accueil</button>
+      <button class="tab" data-v="itineraire">Itinéraire</button>
+      <button class="tab" data-v="budget">Budget</button>
+      <button class="tab" data-v="formalites">Formalités</button>
+      <button class="tab" data-v="incontournables">Les incontournables</button>
+      <button class="tab" data-v="carnet">Carnet de voyage</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="view" id="v-accueil"></section>
+  <section class="view" id="v-itineraire" hidden></section>
+  <section class="view" id="v-budget" hidden></section>
+  <section class="view" id="v-formalites" hidden></section>
+  <section class="view" id="v-incontournables" hidden></section>
+  <section class="view" id="v-carnet" hidden></section>
+</main>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <h2 id="dTitle">—</h2>
+  <div class="body" id="dBody"></div>
+  <div class="foot" id="dFoot"></div>
+</aside>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+"use strict";
+/* ============================================================ Stockage ============================================================ */
+const KEY = "voyage-planner-v3";
+let memoryOnly = false, mem = null;
+const store = {
+  read(){ if(memoryOnly) return mem; try{ const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch(e){ memoryOnly = true; return mem; } },
+  write(d){ if(memoryOnly){ mem = d; return; } try{ localStorage.setItem(KEY, JSON.stringify(d)); } catch(e){ memoryOnly = true; mem = d; toast("Stockage indisponible — pensez à exporter"); } }
+};
+
+/* ============================================================ Utilitaires ============================================================ */
+const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2,10);
+const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const CATS = ["Vols","Trains","Hôtel","Taxi","Nourriture","Excursions","Shopping","Formalités","Divers"];
+const ICONS = {"Vols":"✈","Trains":"🚄","Hôtel":"🏨","Taxi":"🚕","Nourriture":"🍽","Excursions":"🎒","Shopping":"🛍","Formalités":"📄","Divers":"•"};
+function icon(cat){ return ICONS[cat] || "•"; }
+const JOURS = ["dim","lun","mar","mer","jeu","ven","sam"];
+const MOIS = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+
+function d2s(d){ return d.toISOString().slice(0,10); }
+function s2d(s){ const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); }
+function dt(dateStr, timeStr){ return new Date(dateStr + "T" + (timeStr||"00:00") + ":00"); }
+function today(){ const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+function fmtDate(s){ if(!s) return "—"; const d = s2d(s); return d.getDate()+" "+MOIS[d.getMonth()]; }
+function daysBetween(a,b){ return Math.round((s2d(b)-s2d(a))/864e5); }
+function until(target){
+  const ms = target - new Date(); if(ms<=0) return null;
+  const totalMin = Math.floor(ms/60000), d = Math.floor(totalMin/1440), h = Math.floor((totalMin%1440)/60), m = totalMin%60;
+  if(d>0) return d+"j "+h+"h"; if(h>0) return h+"h "+m+"min"; return m+"min";
+}
+function money(n){ const c = trip()?.currency || "EUR"; return new Intl.NumberFormat("fr-FR",{style:"currency",currency:c,maximumFractionDigits:0}).format(n||0); }
+function dueCls(due){ if(!due) return "ok"; const d = daysBetween(d2s(today()), due); return d < 0 ? "late" : d <= 14 ? "soon" : "ok"; }
+let toastT;
+function toast(m){ const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=>t.hidden = true, 2600); }
+
+/* ============================================================ État ============================================================ */
+let db, view = "accueil";
+const VIEWS = ["accueil","itineraire","budget","formalites","incontournables","carnet"];
+function loadView(){ try{ const v = localStorage.getItem("voyage-planner-tab"); return VIEWS.includes(v) ? v : "accueil"; }catch(e){ return "accueil"; } }
+function saveView(v){ try{ localStorage.setItem("voyage-planner-tab", v); }catch(e){} }
+const expanded = new Set();
+let expandedInit = false;
+function trip(){ return db.trips.find(t => t.id === db.activeId) || db.trips[0]; }
+function save(){ store.write(db); }
+
+function blankTrip(name){
+  const s = d2s(today()), e = d2s(new Date(today().getTime()+6*864e5));
+  return { id:uid(), name:name||"Nouveau voyage", currency:"EUR", travelers:1, start:s, end:e, stages:[], acts:[], budget:[], tasks:[], todos:[], journal:[], highlights:[] };
+}
+
+function seed(){
+  const t = blankTrip("Exemple — à remplacer");
+  const s = d2s(new Date(today().getTime()+30*864e5)), e = d2s(new Date(today().getTime()+37*864e5));
+  t.travelers = 2; t.start = s; t.end = e;
+  const s1 = uid();
+  t.stages = [
+    {id:s1, name:"Ma destination", start:s, end:e, img:"", lat:null, lng:null, hotelName:"", hotelAddress:"", hotelHow:"", hotelLink:""}
+  ];
+  const A = (date,time,title,stage,cat,notes,extra) => t.acts.push(Object.assign({id:uid(),date,time,title,stage,cat,notes:notes||"",img:"",done:false,flightNo:"",checkin:"",gyg:""}, extra||{}));
+  A(s,"08:00","Vol aller",s1,"Vols","Exemple d'activité — modifiez ou supprimez.");
+  A(s,"14:00","Installation à l'hôtel",s1,"Hôtel","");
+
+  const B = (label,cat,stage,planned) => t.budget.push({id:uid(),label,cat,stage,planned,actual:0,paid:false});
+  B("Vols (exemple)","Vols",s1,0);
+  B("Hôtel (exemple)","Hôtel",s1,0);
+
+  const T = (label,due,notes) => t.tasks.push({id:uid(),label,due,notes:notes||"",done:false});
+  T("Vérifier la validité du passeport","",'');
+
+  const H = (name,stage,kind,notes) => t.highlights.push({id:uid(),stage,name,kind,photo:"",notes:notes||"",link:"",visited:false});
+  H("Exemple de lieu à voir",s1,"lieu","");
+
+  return t;
+}
+
+function migrate(database){
+  database.trips.forEach(t => { if(!t.todos) t.todos = []; if(!t.journal) t.journal = []; if(!t.highlights) t.highlights = []; });
+  return database;
+}
+
+function boot(){
+  db = store.read();
+  if(!db || !db.trips || !db.trips.length){ const t = seed(); db = { v:3, trips:[t], activeId:t.id }; save(); }
+  db = migrate(db);
+  if(!db.trips.find(t => t.id === db.activeId)) db.activeId = db.trips[0].id;
+  const td = d2s(today());
+  const upcoming = db.trips.filter(t=>t.end>=td).sort((a,b)=>(a.start||"").localeCompare(b.start||""))[0];
+  if(upcoming) db.activeId = upcoming.id;
+  view = loadView();
+  render();
+  setInterval(()=>{ if(view==="accueil") tickAccueil(trip()); }, 60000);
+}
+
+/* ============================================================ Images ============================================================ */
+function pickImage(cb){
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = "image/*";
+  inp.onchange = () => {
+    const f = inp.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 1200, sc = Math.min(1, max/img.width);
+        const cv = document.createElement("canvas");
+        cv.width = Math.round(img.width*sc); cv.height = Math.round(img.height*sc);
+        cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+        cb(cv.toDataURL("image/jpeg", 0.78));
+      };
+      img.onerror = () => toast("Image illisible");
+      img.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  };
+  inp.click();
+}
+function ph(name){
+  let h = 0; for(const c of String(name)) h = (h*31 + c.charCodeAt(0)) % 360;
+  return `linear-gradient(160deg, hsl(${h},16%,18%), hsl(${(h+35)%360},14%,10%))`;
+}
+
+/* ============================================================ Navigation ============================================================ */
+document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => { view = b.dataset.v; render(); }));
+
+function render(){
+  const t = trip();
+  saveView(view);
+  $("#tripNameBtn").textContent = "ROPALAAN";
+  const bits = [];
+  if(t.start && t.end) bits.push(fmtDate(t.start)+" → "+fmtDate(t.end));
+  bits.push(t.travelers+" voy.");
+  $("#tripSub").textContent = bits.join(" · ");
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.v === view));
+  VIEWS.forEach(v => $("#v-"+v).hidden = v !== view);
+  ({accueil:renderAccueil, itineraire:renderItineraire, budget:renderBudget, formalites:renderFormalites, incontournables:renderIncontournables, carnet:renderCarnet})[view](t);
+}
+
+/* ============================================================ Logique de voyage ============================================================ */
+function relevantStage(t){
+  const td = d2s(today());
+  let cur = t.stages.find(s => td>=s.start && td<=s.end);
+  if(cur) return cur;
+  let up = t.stages.filter(s=>s.start>td).sort((a,b)=>a.start.localeCompare(b.start))[0];
+  if(up) return up;
+  return t.stages[t.stages.length-1] || null;
+}
+function nextFlight(t){
+  const now = new Date();
+  const fl = t.acts.filter(a=>a.cat==="Vols" && a.date).map(a=>Object.assign({_dt:dt(a.date,a.time||"00:00")}, a)).filter(a=>a._dt>=now);
+  fl.sort((a,b)=>a._dt-b._dt);
+  return fl[0] || null;
+}
+
+/* ============================================================ Destinations (voyages à venir) ============================================================ */
+function destinationsCardHTML(){
+  const td = d2s(today());
+  const upcoming = [...db.trips].filter(x=>x.end>=td).sort((a,b)=>(a.start||"").localeCompare(b.start||""));
+  if(!upcoming.length){
+    return `<div class="card">
+      <div class="eyebrow"><span>Destinations</span></div>
+      <div class="empty" style="padding:6px 0">Aucun voyage à venir.
+        <div style="margin-top:8px"><button class="btn pri" onclick="newTrip()">+ Ajouter un nouveau voyage</button></div>
+      </div>
+    </div>`;
+  }
+  return `<div class="card">
+    <div class="eyebrow"><span>Destinations</span><a href="#" onclick="newTrip();return false">+ Nouveau voyage</a></div>
+    ${upcoming.map(x=>{
+      const dest = x.stages.map(s=>s.name).join(" → ") || "—";
+      const jj = daysBetween(td, x.start);
+      const cd = jj>0 ? "J-"+jj : (jj===0 ? "Aujourd'hui" : "En cours");
+      return `<button class="dest-row" onclick="viewTripDetails('${x.id}')">
+        <span class="main">
+          <span class="ti">${esc(x.name)}</span>
+          <span class="mt">${esc(dest)} · ${fmtDate(x.start)} → ${fmtDate(x.end)}</span>
+        </span>
+        <span class="cdmini">${cd}</span>
+      </button>`;
+    }).join("")}
+  </div>`;
+}
+
+function viewTripDetails(id){
+  const t = db.trips.find(x=>x.id===id);
+  if(!t) return;
+  const dest = t.stages.length ? t.stages.map(s=>`${esc(s.name)} (${fmtDate(s.start)} → ${fmtDate(s.end)})`).join("<br>") : "Aucune étape renseignée";
+  openDrawer(t.name, `
+    <div style="margin-bottom:16px">
+      <div class="fieldnote" style="margin:0 0 4px">Dates</div>
+      <div>${fmtDate(t.start)} → ${fmtDate(t.end)}</div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div class="fieldnote" style="margin:0 0 4px">Voyageurs</div>
+      <div>${t.travelers}</div>
+    </div>
+    <div style="margin-bottom:4px">
+      <div class="fieldnote" style="margin:0 0 4px">Étapes</div>
+      <div>${dest}</div>
+    </div>
+  `, [
+    {label:"Basculer sur ce voyage", cls:"pri", act:()=>{ switchTrip(id); }},
+    {label:"Modifier", act:()=>{ switchTrip(id); openTripSettings(); }},
+    {label:"Dupliquer", act:()=>dupTrip(id)},
+    {label:"Fermer", act:closeDrawer}
+  ]);
+}
+
+function tickAccueil(t){
+  const el = document.getElementById("accCheckin");
+  if(!el) return;
+  const fl = nextFlight(t);
+  if(fl && fl.checkin){
+    const ci = new Date(fl.checkin), dep = fl._dt, now = new Date();
+    el.textContent = now<ci ? "ouvre dans "+until(ci) : (now<dep ? "ouvert" : "clôturé");
+  }
+}
+
+/* ============================================================ Accueil ============================================================ */
+function renderAccueil(t){
+  const fl = nextFlight(t);
+  const heroStage = (fl && fl.stage && t.stages.find(s=>s.id===fl.stage)) || relevantStage(t);
+  const el = $("#v-accueil");
+
+  if(!t.start || (!t.stages.length && !fl)){
+    el.innerHTML = `<div class="empty">Ajoutez vos étapes et vos vols dans l'Itinéraire pour voir le compte à rebours ici.</div>` + destinationsCardHTML();
+    renderAccueilCards(t, heroStage);
+    return;
+  }
+
+  let destName = heroStage ? heroStage.name : t.name;
+  let cdLabel, cdVal;
+  let rows = [];
+
+  if(fl){
+    const jj = daysBetween(d2s(today()), fl.date);
+    cdVal = jj>0 ? jj : (jj===0?"0":"0"); cdLabel = jj>0?"jours":(jj===0?"aujourd'hui":"jours");
+    rows.push(["Vol", (fl.flightNo?esc(fl.flightNo)+" · ":"") + (fl.time||"—")]);
+    if(fl.boarding || fl.terminal){
+      rows.push(["Embarquement", [fl.boarding, fl.terminal?esc(fl.terminal):""].filter(Boolean).join(" · ") || "—"]);
+    }
+    if(fl.checkin){
+      const ci = new Date(fl.checkin), dep = fl._dt, now = new Date();
+      rows.push(["Enregistrement", `<span id="accCheckin">${now<ci ? "ouvre dans "+until(ci) : (now<dep ? "ouvert" : "clôturé")}</span>`]);
+    } else {
+      rows.push(["Enregistrement", "—"]);
+    }
+  } else if(heroStage){
+    const td = d2s(today());
+    if(td>=heroStage.start && td<=heroStage.end){ cdVal = "en cours"; cdLabel = ""; }
+    else { const jj = daysBetween(td, heroStage.start); cdVal = jj; cdLabel = "jours"; }
+    rows.push(["Vol", "à renseigner"]);
+  } else {
+    cdVal = "—"; cdLabel = "";
+  }
+  if(heroStage){
+    const n = daysBetween(heroStage.start, heroStage.end);
+    if(heroStage.driveTime) rows.push(["Trajet → hôtel", esc(heroStage.driveTime)]);
+    rows.push(["Sur place", n>0 ? n+" nuits" : "—"]);
+  }
+
+  const bg = heroStage && heroStage.img ? `background-image:url('${heroStage.img}')` : `background-image:${ph(destName)}`;
+  el.innerHTML = `
+    <div class="hero" style="${bg}">
+      <div class="glass">
+        <div class="dest">${esc(destName)}</div>
+        <div class="cd">${cdVal}<span>${cdLabel}</span></div>
+        <div class="grows">
+          ${rows.map(r=>`<div class="grow"><span class="k">${r[0]}</span><span class="v">${r[1]}</span></div>`).join("")}
+        </div>
+      </div>
+    </div>
+  ` + destinationsCardHTML();
+  renderAccueilCards(t, heroStage);
+}
+
+function renderAccueilCards(t, heroStage){
+  const open = t.tasks.filter(x=>!x.done).sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999"));
+  const taskCard = `
+    <div class="card">
+      <div class="eyebrow"><span>Formalités restantes</span><a href="#" onclick="view='formalites';render();return false">Tout voir</a></div>
+      ${open.length ? open.slice(0,4).map(x=>`
+        <div class="mini-task"><span>${esc(x.label)}</span><span class="due ${dueCls(x.due)}">${x.due?fmtDate(x.due):""}</span></div>
+      `).join("") : `<div class="empty" style="padding:6px 0">Tout est fait.</div>`}
+    </div>`;
+
+  let hotelCard;
+  if(heroStage && (heroStage.hotelName || heroStage.hotelHow)){
+    hotelCard = `
+      <div class="card">
+        <div class="eyebrow"><span>Hôtel — ${esc(heroStage.name)}</span></div>
+        <div class="hotel-name">${esc(heroStage.hotelName||"—")}</div>
+        ${heroStage.hotelAddress?`<div class="hotel-addr">${esc(heroStage.hotelAddress)}</div>`:""}
+        ${heroStage.hotelHow?`<div class="hotel-how">${esc(heroStage.hotelHow)}</div>`:""}
+        ${heroStage.hotelLink?`<div class="row" style="margin-top:10px"><a class="btn" href="${esc(heroStage.hotelLink)}" target="_blank" rel="noopener">Itinéraire</a></div>`:""}
+      </div>`;
+  } else if(heroStage){
+    hotelCard = `
+      <div class="card">
+        <div class="eyebrow"><span>Hôtel — ${esc(heroStage.name)}</span></div>
+        <div class="empty" style="padding:6px 0">Pas encore renseigné.
+          <div style="margin-top:8px"><button class="btn" onclick="editStage('${heroStage.id}')">Ajouter</button></div>
+        </div>
+      </div>`;
+  } else hotelCard = "";
+
+  $("#v-accueil").insertAdjacentHTML("beforeend", taskCard + hotelCard);
+}
+
+/* ============================================================ Itinéraire (voyage > étape > jours) ============================================================ */
+let expandedTripId = null;
+let expandedTripInit = false;
+
+function toggleTripGroup(id){
+  if(expandedTripId === id){ expandedTripId = null; renderItineraire(); return; }
+  if(db.activeId !== id){ db.activeId = id; expanded.clear(); expandedInit = false; expandedHi.clear(); expandedHiInit = false; save(); }
+  expandedTripId = id;
+  renderItineraire();
+}
+function toggleStage(id){ expanded.has(id) ? expanded.delete(id) : expanded.add(id); renderItineraire(); }
+
+function dayBlock(t, date){
+  const d = s2d(date);
+  const acts = t.acts.filter(a=>a.date===date).sort((a,b)=>(a.time||"99").localeCompare(b.time||"99"));
+  return `<div class="gcard day-card">
+    <div class="day-head"><span class="dnum">${d.getDate()}</span><span class="dwk">${JOURS[d.getDay()]} · ${MOIS[d.getMonth()]}</span></div>
+    ${acts.length ? acts.map(a=>`
+      <button class="entry-act ${a.done?"done":""}" onclick="editAct('${a.id}')">
+        <span class="ic">${icon(a.cat)}</span>
+        <span class="tm">${esc(a.time||"—")}</span>
+        <span class="main">
+          <span class="ti">${esc(a.title)}${a.gyg?`<span class="gyg">GYG</span>`:""}</span>
+          ${a.notes?`<span class="mt">${esc(a.notes)}</span>`:""}
+        </span>
+        ${a.img?`<img class="thumb" src="${a.img}" alt="">`:""}
+      </button>`).join("") : `<div class="day-empty">Rien de prévu</div>`}
+    <button class="add-line" onclick="editAct(null,'${date}')">+ ajouter</button>
+  </div>`;
+}
+
+function stageSection(t, s){
+  const n = daysBetween(s.start, s.end);
+  const isOpen = expanded.has(s.id);
+  let html = `<div class="stage-head">
+    <button class="stage-head-main" onclick="toggleStage('${s.id}')">
+      <span class="sname">${esc(s.name)}</span><br><span class="smeta">${fmtDate(s.start)} → ${fmtDate(s.end)} · ${n>0?n+" nuits":""}</span>
+    </button>
+    <button class="icon-btn" onclick="event.stopPropagation();editStage('${s.id}')" aria-label="Modifier">✎</button>
+    <button class="icon-btn danger" onclick="event.stopPropagation();delStage('${s.id}')" aria-label="Retirer">🗑</button>
+    <button class="chev" onclick="toggleStage('${s.id}')">${isOpen?"−":"+"}</button>
+  </div>`;
+  if(isOpen){
+    let days = "";
+    for(let i=0;i<=n;i++) days += dayBlock(t, d2s(new Date(s2d(s.start).getTime()+i*864e5)));
+    html += `<div class="stage-body">${days}</div>`;
+  }
+  return html;
+}
+
+function tripSection(x){
+  const isOpen = expandedTripId === x.id;
+  const n = daysBetween(x.start, x.end);
+  let html = `<div class="trip-head">
+    <button class="trip-head-main" onclick="toggleTripGroup('${x.id}')">
+      <span class="sname">🧳 ${esc(x.name)}</span><br><span class="smeta">${fmtDate(x.start)} → ${fmtDate(x.end)} · ${n>0?n+1+" jours":""}</span>
+    </button>
+    <button class="icon-btn" onclick="event.stopPropagation();switchTrip('${x.id}');openTripSettings()" aria-label="Modifier">✎</button>
+    <button class="icon-btn danger" onclick="event.stopPropagation();delTrip('${x.id}')" aria-label="Supprimer">🗑</button>
+    <button class="chev" onclick="toggleTripGroup('${x.id}')">${isOpen?"−":"+"}</button>
+  </div>`;
+  if(isOpen){
+    let inner = "";
+    if(!expandedInit){ expandedInit = true; const r = relevantStage(x); if(r) expanded.add(r.id); }
+    if(!x.stages.length){
+      inner += `<div class="empty" style="padding:10px 0">Aucune étape. <button class="btn" style="margin-left:6px" onclick="editStage(null)">+ ajouter</button></div>`;
+    } else {
+      x.stages.forEach(s => inner += stageSection(x, s));
+    }
+    const orphans = x.acts.filter(a=>!a.stage || !x.stages.find(s=>s.id===a.stage));
+    if(orphans.length){
+      const oOpen = expanded.has("__orphans");
+      inner += `<div class="stage-head">
+        <button class="stage-head-main" onclick="toggleStage('__orphans')">
+          <span class="sname">Sans étape</span><br><span class="smeta">${orphans.length} activité${orphans.length>1?"s":""}</span>
+        </button>
+        <button class="chev" onclick="toggleStage('__orphans')">${oOpen?"−":"+"}</button>
+      </div>`;
+      if(oOpen){
+        const dates = [...new Set(orphans.map(a=>a.date))].sort();
+        inner += `<div class="stage-body">${dates.map(d=>dayBlock(x,d)).join("")}</div>`;
+      }
+    }
+    html += `<div class="trip-body">${inner}</div>`;
+  }
+  return html;
+}
+
+function renderItineraire(){
+  const el = $("#v-itineraire");
+  if(!db.trips.length){ el.innerHTML = `<div class="empty">Aucun voyage. Créez-en un depuis l'Accueil.</div>`; return; }
+  if(!expandedTripInit){ expandedTripInit = true; expandedTripId = db.activeId; }
+  const ordered = [...db.trips].sort((a,b)=>(a.start||"").localeCompare(b.start||""));
+  el.innerHTML = ordered.map(tripSection).join("");
+}
+
+function editAct(id, presetDate){
+  const t = trip();
+  const a = t.acts.find(x=>x.id===id) || {id:"",date:presetDate||t.start,time:"",title:"",stage:"",cat:"Activités",notes:"",img:"",done:false,flightNo:"",checkin:"",boarding:"",terminal:"",gyg:""};
+  let img = a.img;
+  const isFlight = a.cat === "Vols";
+  openDrawer(id?"Modifier l'activité":"Nouvelle activité", `
+    <label><span>Intitulé</span><input id="f-title" value="${esc(a.title)}" placeholder="Excursion Giftun Island"></label>
+    <div class="grid2">
+      <label><span>Date</span><input type="date" id="f-date" value="${a.date}"></label>
+      <label><span>Heure</span><input type="time" id="f-time" value="${a.time}"></label>
+    </div>
+    <div class="grid2">
+      <label><span>Étape</span><select id="f-stage">${stageOpts(a.stage)}</select></label>
+      <label><span>Catégorie</span><select id="f-cat">${catOpts(a.cat)}</select></label>
+    </div>
+    <div id="flightFields" style="${isFlight?"":"display:none"}">
+      <div class="grid2">
+        <label><span>Numéro de vol</span><input id="f-flightno" value="${esc(a.flightNo)}" placeholder="TO 1234"></label>
+        <label><span>Terminal</span><input id="f-terminal" value="${esc(a.terminal)}" placeholder="Terminal 2E"></label>
+      </div>
+      <div class="grid2">
+        <label><span>Heure d'embarquement</span><input type="time" id="f-boarding" value="${a.boarding||""}"></label>
+        <label><span>Ouverture enregistrement</span><input type="datetime-local" id="f-checkin" value="${a.checkin||""}"></label>
+      </div>
+      <div class="fieldnote">Utilisés par la case « prochain vol » de l'Accueil.</div>
+    </div>
+    <label><span>Photo</span></label>
+    <div class="thumb-wrap"><img id="thumbImg" src="${img||""}" alt="" style="${img?"":"display:none"}"></div>
+    <div class="row" style="margin-bottom:14px">
+      <button class="btn" id="btnPick" type="button">Choisir une image</button>
+      <button class="btn" id="btnClr" type="button">Retirer</button>
+    </div>
+    <label><span>Notes</span><textarea id="f-notes" placeholder="Horaires, contacts, précautions…">${esc(a.notes)}</textarea></label>
+    <div class="hr"></div>
+    <label><span>Lien de réservation GetYourGuide</span><input id="f-gyg" value="${esc(a.gyg)}" placeholder="https://www.getyourguide.com/…"></label>
+    <div class="row" style="margin-bottom:14px">
+      <button class="btn" type="button" onclick="window.open('https://www.getyourguide.com/s/?q='+encodeURIComponent(${JSON.stringify(a.title)}||'','_blank')">Chercher sur GetYourGuide</button>
+    </div>
+    <label class="row" style="gap:8px;align-items:center"><input type="checkbox" id="f-done" ${a.done?"checked":""} style="width:auto"><span style="margin:0">Fait</span></label>
+  `, [
+    {label:"Enregistrer", cls:"pri", act:()=>{
+      const title = $("#f-title").value.trim();
+      if(!title){ toast("Indiquez un intitulé"); return; }
+      const o = {id:a.id||uid(), title, date:$("#f-date").value, time:$("#f-time").value,
+                 stage:$("#f-stage").value, cat:$("#f-cat").value, img,
+                 notes:$("#f-notes").value.trim(), done:$("#f-done").checked,
+                 flightNo:$("#f-flightno").value.trim(), checkin:$("#f-checkin").value,
+                 boarding:$("#f-boarding").value, terminal:$("#f-terminal").value.trim(), gyg:$("#f-gyg").value.trim()};
+      if(a.id) t.acts[t.acts.findIndex(x=>x.id===a.id)] = o; else t.acts.push(o);
+      save(); closeDrawer(); render(); toast("Activité enregistrée");
+    }},
+    ...(id?[{label:"Supprimer", cls:"danger", act:()=>{ t.acts = t.acts.filter(x=>x.id!==id); save(); closeDrawer(); render(); toast("Activité supprimée"); }}]:[]),
+    {label:"Annuler", act:closeDrawer}
+  ]);
+  $("#f-cat").addEventListener("change", e => { $("#flightFields").style.display = e.target.value==="Vols" ? "" : "none"; });
+  $("#btnPick").onclick = () => pickImage(d => { img = d; $("#thumbImg").src = d; $("#thumbImg").style.display=""; });
+  $("#btnClr").onclick = () => { img = ""; $("#thumbImg").style.display="none"; };
+}
+
+/* ============================================================ Budget ============================================================ */
+function stageName(t,id){ const s = t.stages.find(x=>x.id===id); return s?s.name:""; }
+function renderBudget(t){
+  const el = $("#v-budget");
+  const pl = t.budget.reduce((s,b)=>s+(+b.planned||0),0);
+  const ac = t.budget.reduce((s,b)=>s+(+b.actual||0),0);
+
+  let html = `<div class="row" style="justify-content:flex-end;margin-bottom:10px"><button class="btn" onclick="editBudget(null)">+ ajouter un poste</button></div>`;
+  html += `<div class="gcard tot-card">
+    <div class="tot-label">Budget total</div>
+    <div class="tot-num">${money(pl)}</div>
+    <div class="tot-sub">réel engagé ${money(ac)}${t.travelers>1?` · ${money(pl/t.travelers)} / personne`:""}</div>
+    ${pl?`<div class="tot-bar"><i style="width:${Math.min(100,ac/pl*100)}%;background:${ac>pl?"var(--bad)":"var(--accent)"}"></i></div>`:""}
+  </div>`;
+
+  if(!t.budget.length){ html += `<div class="empty">Aucun poste. Ajoutez vos dépenses au fil de l'eau.</div>`; el.innerHTML = html; return; }
+
+  const byCat = {};
+  t.budget.forEach(b => { (byCat[b.cat||"Divers"] ||= []).push(b); });
+  CATS.filter(c=>byCat[c]).forEach(c=>{
+    const rows = byCat[c];
+    const sp = rows.reduce((s,b)=>s+(+b.planned||0),0), sa = rows.reduce((s,b)=>s+(+b.actual||0),0);
+    html += `<div class="gcard">
+      <div class="cat-head">
+        <span class="cat-name"><span class="ic">${icon(c)}</span>${c}</span>
+        <span class="cat-sum">${money(sp)}${sa?` · réel ${money(sa)}`:""}</span>
+      </div>
+      ${rows.map(b=>{
+        const over = (+b.actual||0) > (+b.planned||0) && b.actual;
+        return `<button class="entry-bud" onclick="editBudget('${b.id}')">
+          <span class="main"><span class="ti">${esc(b.label)}</span>
+            <span class="mt">${[stageName(t,b.stage), b.paid?"payé":""].filter(Boolean).join(" · ")}</span></span>
+          <span class="vals"><span class="p">${money(b.planned)}</span>
+            <span class="a ${over?"over":""}">${b.actual?"réel "+money(b.actual):"—"}</span></span>
+        </button>`;
+      }).join("")}
+    </div>`;
+  });
+  if(t.travelers > 1) html += `<div class="perperson">${money(pl/t.travelers)} / personne</div>`;
+  el.innerHTML = html;
+}
+
+function editBudget(id){
+  const t = trip();
+  const b = t.budget.find(x=>x.id===id) || {id:"",label:"",cat:"Divers",stage:"",planned:0,actual:0,paid:false};
+  openDrawer(id?"Modifier le poste":"Nouveau poste", `
+    <label><span>Intitulé</span><input id="f-label" value="${esc(b.label)}" placeholder="Resort Hurghada — 8 nuits"></label>
+    <div class="grid2">
+      <label><span>Catégorie</span><select id="f-cat">${catOpts(b.cat)}</select></label>
+      <label><span>Étape</span><select id="f-stage">${stageOpts(b.stage)}</select></label>
+    </div>
+    <div class="grid2">
+      <label><span>Montant prévu</span><input type="number" inputmode="decimal" id="f-planned" value="${b.planned||""}"></label>
+      <label><span>Montant réel</span><input type="number" inputmode="decimal" id="f-actual" value="${b.actual||""}"></label>
+    </div>
+    <label class="row" style="gap:8px;align-items:center"><input type="checkbox" id="f-paid" ${b.paid?"checked":""} style="width:auto"><span style="margin:0">Déjà payé</span></label>
+  `, [
+    {label:"Enregistrer", cls:"pri", act:()=>{
+      const label = $("#f-label").value.trim();
+      if(!label){ toast("Indiquez un intitulé"); return; }
+      const o = {id:b.id||uid(), label, cat:$("#f-cat").value, stage:$("#f-stage").value,
+                 planned:+$("#f-planned").value||0, actual:+$("#f-actual").value||0, paid:$("#f-paid").checked};
+      if(b.id) t.budget[t.budget.findIndex(x=>x.id===b.id)] = o; else t.budget.push(o);
+      save(); closeDrawer(); render(); toast("Poste enregistré");
+    }},
+    ...(id?[{label:"Supprimer", cls:"danger", act:()=>{ t.budget = t.budget.filter(x=>x.id!==id); save(); closeDrawer(); render(); toast("Poste supprimé"); }}]:[]),
+    {label:"Annuler", act:closeDrawer}
+  ]);
+}
+
+/* ============================================================ Formalités ============================================================ */
+function renderFormalites(t){
+  const el = $("#v-formalites");
+  let html = `<div class="row" style="justify-content:flex-end;margin-bottom:4px"><button class="btn" onclick="editTask(null)">+ ajouter</button></div>`;
+  if(!t.tasks.length){ html += `<div class="empty">Visas, vaccins, réservations : rien pour l'instant.</div>`; el.innerHTML = html; return; }
+  const list = [...t.tasks].sort((a,b)=> (a.done-b.done) || (a.due||"9999").localeCompare(b.due||"9999"));
+  html += list.map(x=>`
+    <div class="entry-task ${x.done?"done":""}">
+      <input type="checkbox" ${x.done?"checked":""} onchange="toggleTask('${x.id}')" aria-label="${esc(x.label)}">
+      <div class="main" onclick="editTask('${x.id}')">
+        <div class="ti">${esc(x.label)}</div>
+        ${x.notes?`<div class="mt">${esc(x.notes)}</div>`:""}
+      </div>
+      <span class="due ${x.done?"ok":dueCls(x.due)}">${x.due?fmtDate(x.due):""}</span>
+    </div>`).join("");
+  el.innerHTML = html;
+}
+function toggleTask(id){ const x = trip().tasks.find(t=>t.id===id); x.done = !x.done; save(); render(); }
+
+function editTask(id){
+  const t = trip();
+  const x = t.tasks.find(v=>v.id===id) || {id:"",label:"",due:"",notes:"",done:false};
+  openDrawer(id?"Modifier la formalité":"Nouvelle formalité", `
+    <label><span>Intitulé</span><input id="f-label" value="${esc(x.label)}" placeholder="Demander l'e-visa"></label>
+    <label><span>À faire avant le</span><input type="date" id="f-due" value="${x.due||""}"></label>
+    <label><span>Notes</span><textarea id="f-notes" placeholder="Site officiel, pièces à fournir, délai…">${esc(x.notes)}</textarea></label>
+  `, [
+    {label:"Enregistrer", cls:"pri", act:()=>{
+      const label = $("#f-label").value.trim();
+      if(!label){ toast("Indiquez un intitulé"); return; }
+      const o = {id:x.id||uid(), label, due:$("#f-due").value, notes:$("#f-notes").value.trim(), done:x.done};
+      if(x.id) t.tasks[t.tasks.findIndex(v=>v.id===x.id)] = o; else t.tasks.push(o);
+      save(); closeDrawer(); render(); toast("Formalité enregistrée");
+    }},
+    ...(id?[{label:"Supprimer", cls:"danger", act:()=>{ t.tasks = t.tasks.filter(v=>v.id!==id); save(); closeDrawer(); render(); toast("Formalité supprimée"); }}]:[]),
+    {label:"Annuler", act:closeDrawer}
+  ]);
+}
+
+/* ============================================================ Les incontournables ============================================================ */
+const expandedHi = new Set();
+let expandedHiInit = false;
+function toggleHi(id){ expandedHi.has(id) ? expandedHi.delete(id) : expandedHi.add(id); renderIncontournables(trip()); }
+
+function hiRow(h){
+  return `<button class="entry-act${h.visited?" done":""}" onclick="editHi('${h.id}')">
+    <span class="ic">${h.kind==="photo"?"📷":"📍"}</span>
+    <span class="main">
+      <span class="ti">${esc(h.name)}${h.link?" 🔗":""}</span>
+      ${h.notes?`<span class="mt">${esc(h.notes)}</span>`:""}
+    </span>
+    ${h.photo?`<img class="thumb" src="${h.photo}" alt="">`:""}
+  </button>`;
+}
+
+function renderIncontournables(t){
+  const el = $("#v-incontournables");
+  let html = `<div class="row" style="justify-content:flex-end;margin-bottom:10px"><button class="btn" onclick="editHi(null)">+ ajouter</button></div>`;
+  if(!t.stages.length && !t.highlights.length){
+    html += `<div class="empty">Ajoutez vos lieux à voir et spots photos, par destination.</div>`;
+    el.innerHTML = html; return;
+  }
+  if(!expandedHiInit){ expandedHiInit = true; const r = relevantStage(t); if(r) expandedHi.add(r.id); }
+
+  t.stages.forEach(s=>{
+    const items = t.highlights.filter(h=>h.stage===s.id);
+    const isOpen = expandedHi.has(s.id);
+    html += `<button class="stage-head" onclick="toggleHi('${s.id}')">
+      <span><span class="sname">${esc(s.name)}</span><br><span class="smeta">${items.length} lieu${items.length>1?"x":""}</span></span>
+      <span class="chev">${isOpen?"−":"+"}</span></button>`;
+    if(isOpen){
+      html += `<div class="stage-body">${items.length ? items.map(hiRow).join("") : `<div class="day-empty">Rien pour l'instant</div>`}</div>`;
+    }
+  });
+  const orphans = t.highlights.filter(h=>!h.stage || !t.stages.find(s=>s.id===h.stage));
+  if(orphans.length){
+    const isOpen = expandedHi.has("__orphans");
+    html += `<button class="stage-head" onclick="toggleHi('__orphans')">
+      <span><span class="sname">Sans étape</span><br><span class="smeta">${orphans.length} lieu${orphans.length>1?"x":""}</span></span>
+      <span class="chev">${isOpen?"−":"+"}</span></button>`;
+    if(isOpen) html += `<div class="stage-body">${orphans.map(hiRow).join("")}</div>`;
+  }
+  el.innerHTML = html;
+}
+
+function editHi(id){
+  const t = trip();
+  const h = t.highlights.find(x=>x.id===id) || {id:"",stage:(relevantStage(t)||{}).id||"",name:"",kind:"lieu",photo:"",notes:"",link:"",visited:false};
+  let img = h.photo;
+  openDrawer(id?"Modifier l'incontournable":"Nouvel incontournable", `
+    <label><span>Nom</span><input id="f-name" value="${esc(h.name)}" placeholder="Corniche, vue au coucher du soleil"></label>
+    <div class="grid2">
+      <label><span>Étape</span><select id="f-stage">${stageOpts(h.stage)}</select></label>
+      <label><span>Type</span><select id="f-kind">
+        <option value="lieu" ${h.kind==="lieu"?"selected":""}>Lieu à voir</option>
+        <option value="photo" ${h.kind==="photo"?"selected":""}>Spot photo</option>
+      </select></label>
+    </div>
+    <label><span>Photo de référence</span></label>
+    <div class="thumb-wrap"><img id="thumbImg" src="${img||""}" alt="" style="${img?"":"display:none"}"></div>
+    <div class="row" style="margin-bottom:14px">
+      <button class="btn" id="btnPick" type="button">Choisir une image</button>
+      <button class="btn" id="btnClr" type="button">Retirer</button>
+    </div>
+    <label><span>Notes</span><textarea id="f-notes" placeholder="Meilleure lumière, horaires, prix, accès…">${esc(h.notes)}</textarea></label>
+    <label><span>Lien (infos, réservation, carte)</span><input id="f-link" value="${esc(h.link)}" placeholder="https://…"></label>
+    <label class="row" style="gap:8px;align-items:center"><input type="checkbox" id="f-visited" ${h.visited?"checked":""} style="width:auto"><span style="margin:0">Visité</span></label>
+  `, [
+    {label:"Enregistrer", cls:"pri", act:()=>{
+      const name = $("#f-name").value.trim();
+      if(!name){ toast("Indiquez un nom"); return; }
+      const o = {id:h.id||uid(), name, stage:$("#f-stage").value, kind:$("#f-kind").value, photo:img,
+                 notes:$("#f-notes").value.trim(), link:$("#f-link").value.trim(), visited:$("#f-visited").checked};
+      if(h.id) t.highlights[t.highlights.findIndex(x=>x.id===h.id)] = o; else t.highlights.push(o);
+      save(); closeDrawer(); render(); toast("Enregistré");
+    }},
+    ...(id?[{label:"Supprimer", cls:"danger", act:()=>{ t.highlights = t.highlights.filter(x=>x.id!==id); save(); closeDrawer(); render(); toast("Supprimé"); }}]:[]),
+    {label:"Annuler", act:closeDrawer}
+  ]);
+  $("#btnPick").onclick = () => pickImage(d => { img = d; $("#thumbImg").src = d; $("#thumbImg").style.display=""; });
+  $("#btnClr").onclick = () => { img = ""; $("#thumbImg").style.display="none"; };
+}
+
+/* ============================================================ Carnet de voyage ============================================================ */
+function renderCarnet(t){
+  const el = $("#v-carnet");
+  let html = `<div class="row" style="justify-content:flex-end;margin-bottom:10px"><button class="btn" onclick="editJournal(null)">+ ajouter</button></div>`;
+  if(!t.journal.length){ html += `<div class="empty">Aucune entrée. Racontez vos journées au fil du voyage, avec vos photos.</div>`; el.innerHTML = html; return; }
+  const list = [...t.journal].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  html += list.map(x=>`
+    <button class="jcard" onclick="editJournal('${x.id}')">
+      ${x.photo?`<img class="jphoto" src="${x.photo}" alt="">`:""}
+      <div class="jbody">
+        <div class="jmeta">${x.date?fmtDate(x.date):""}</div>
+        ${x.title?`<div class="jtitle">${esc(x.title)}</div>`:""}
+        ${x.text?`<div class="jtext">${esc(x.text)}</div>`:""}
+      </div>
+    </button>`).join("");
+  el.innerHTML = html;
+}
+
+function editJournal(id){
+  const t = trip();
+  const x = t.journal.find(v=>v.id===id) || {id:"",date:t.start||d2s(today()),title:"",photo:"",text:""};
+  let img = x.photo;
+  openDrawer(id?"Modifier l'entrée":"Nouvelle entrée", `
+    <div class="grid2">
+      <label><span>Date</span><input type="date" id="f-date" value="${x.date}"></label>
+      <label><span>Titre (facultatif)</span><input id="f-title" value="${esc(x.title)}" placeholder="Une matinée à Giftun"></label>
+    </div>
+    <label><span>Photo</span></label>
+    <div class="thumb-wrap" style="aspect-ratio:4/3"><img id="thumbImg" src="${img||""}" alt="" style="${img?"":"display:none"}"></div>
+    <div class="row" style="margin-bottom:14px">
+      <button class="btn" id="btnPick" type="button">Prendre / choisir une photo</button>
+      <button class="btn" id="btnClr" type="button">Retirer</button>
+    </div>
+    <label><span>Récit</span><textarea id="f-text" style="min-height:140px" placeholder="Racontez la journée…">${esc(x.text)}</textarea></label>
+  `, [
+    {label:"Enregistrer", cls:"pri", act:()=>{
+      const date = $("#f-date").value;
+      if(!date){ toast("Indiquez une date"); return; }
+      const o = {id:x.id||uid(), date, title:$("#f-title").value.trim(), photo:img, text:$("#f-text").value.trim()};
+      if(x.id) t.journal[t.journal.findIndex(v=>v.id===x.id)] = o; else t.journal.push(o);
+      save(); closeDrawer(); render(); toast("Entrée enregistrée");
+    }},
+    ...(id?[{label:"Supprimer", cls:"danger", act:()=>{ t.journal = t.journal.filter(v=>v.id!==id); save(); closeDrawer(); render(); toast("Entrée supprimée"); }}]:[]),
+    {label:"Annuler", act:closeDrawer}
+  ]);
+  $("#btnPick").onclick = () => pickImage(d => { img = d; $("#thumbImg").src = d; $("#thumbImg").style.display=""; });
+  $("#btnClr").onclick = () => { img = ""; $("#thumbImg").style.display="none"; };
+}
+
+/* ============================================================ Drawer générique ============================================================ */
+function openDrawer(title, bodyHTML, buttons){
+  $("#dTitle").textContent = title;
+  $("#dBody").innerHTML = bodyHTML;
+  $("#dFoot").innerHTML = "";
+  buttons.forEach(b => { const el = document.createElement("button"); el.className = "btn " + (b.cls||""); el.textContent = b.label; el.type = "button"; el.onclick = b.act; $("#dFoot").appendChild(el); });
+  $("#scrim").hidden = false; $("#drawer").hidden = false;
+  const f = $("#dBody").querySelector("input,select,textarea"); if(f) f.focus();
+}
+function closeDrawer(){ $("#scrim").hidden = true; $("#drawer").hidden = true; }
+$("#scrim").addEventListener("click", closeDrawer);
+document.addEventListener("keydown", e => { if(e.key==="Escape" && !$("#drawer").hidden) closeDrawer(); });
+function stageOpts(sel){ const t = trip(); return `<option value="">— aucune étape —</option>` + t.stages.map(s => `<option value="${s.id}" ${s.id===sel?"selected":""}>${esc(s.name)}</option>`).join(""); }
+function catOpts(sel){ return CATS.map(c => `<option ${c===sel?"selected":""}>${c}</option>`).join(""); }
+
+/* ============================================================ Réglages du voyage ============================================================ */
+function openTripSettings(){
+  const t = trip();
+  openDrawer("Réglages du voyage", `
+    <label><span>Nom du voyage</span><input id="f-name" value="${esc(t.name)}"></label>
+    <div class="grid2">
+      <label><span>Début</span><input type="date" id="f-start" value="${t.start}"></label>
+      <label><span>Fin</span><input type="date" id="f-end" value="${t.end}"></label>
+    </div>
+    <div class="grid2">
+      <label><span>Voyageurs</span><input type="number" min="1" id="f-trav" value="${t.travelers}"></label>
+      <label><span>Devise</span><select id="f-cur">${["EUR","USD","GBP","CHF","MAD","EGP","SAR","XOF"].map(c=>`<option ${c===t.currency?"selected":""}>${c}</option>`).join("")}</select></label>
+    </div>
+    <div class="row" style="justify-content:space-between;align-items:baseline;margin-top:18px">
+      <span style="font-size:12px;color:var(--text-dim)">Étapes / destinations</span>
+      <button class="btn" type="button" onclick="editStage(null, true)">+ ajouter</button>
+    </div>
+    <div class="mini-list">
+      ${t.stages.map(s=>`<div class="mini-row">
+        <span>${esc(s.name)} <span class="sub">${fmtDate(s.start)}→${fmtDate(s.end)}</span></span>
+        <span class="row" style="gap:6px">
+          <button class="btn" type="button" style="padding:3px 8px" onclick="editStage('${s.id}', true)">Modifier</button>
+          <button class="btn danger" type="button" style="padding:3px 8px" onclick="delStage('${s.id}', true)">Retirer</button>
+        </span></div>`).join("") || `<div class="mini-row"><span class="sub">Aucune</span></div>`}
+    </div>
+    <div style="margin-top:22px">
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">Sauvegarde</div>
+      <div class="row"><button class="btn" type="button" onclick="exportJSON()">Exporter</button><button class="btn" type="button" onclick="importJSON()">Importer</button></div>
+      <div style="font-size:11.5px;color:var(--text-faint);margin-top:8px">Les données restent dans ce navigateur — exportez avant de changer d'appareil.
+      ${memoryOnly?`<br><span style="color:var(--warn)">Stockage indisponible ici : vos saisies disparaîtront en fermant l'onglet.</span>`:""}</div>
+    </div>
+    <div class="hr"></div>
+    <button class="btn danger" type="button" onclick="delTrip(trip().id)">Supprimer ce voyage</button>
+  `, [
+    {label:"Enregistrer", cls:"pri", act:()=>{
+      t.name = $("#f-name").value.trim() || "Voyage";
+      t.start = $("#f-start").value; t.end = $("#f-end").value;
+      t.travelers = Math.max(1, +$("#f-trav").value||1); t.currency = $("#f-cur").value;
+      save(); closeDrawer(); render(); toast("Voyage mis à jour");
+    }},
+    {label:"Fermer", act:closeDrawer}
+  ]);
+}
+
+function editStage(id, fromSettings){
+  const t = trip();
+  const s = t.stages.find(x=>x.id===id) || {id:"",name:"",start:t.start,end:t.end,img:"",lat:null,lng:null,driveTime:"",hotelName:"",hotelAddress:"",hotelHow:"",hotelLink:""};
+  let img = s.img;
+  const back = () => { closeDrawer(); if(fromSettings) openTripSettings(); else render(); };
+  openDrawer(id?"Modifier l'étape":"Nouvelle étape", `
+    <label><span>Nom</span><input id="f-name" value="${esc(s.name)}" placeholder="Hurghada"></label>
+    <div class="grid2">
+      <label><span>Arrivée</span><input type="date" id="f-start" value="${s.start}"></label>
+      <label><span>Départ</span><input type="date" id="f-end" value="${s.end}"></label>
+    </div>
+    <label><span>Photo de la destination</span></label>
+    <div class="thumb-wrap"><img id="thumbImg" src="${img||""}" alt="" style="${img?"":"display:none"}"></div>
+    <div class="row" style="margin-bottom:16px">
+      <button class="btn" id="btnPick" type="button">Choisir une image</button>
+      <button class="btn" id="btnClr" type="button">Retirer</button>
+    </div>
+    <div class="hr"></div>
+    <label><span>Hôtel</span><input id="f-hname" value="${esc(s.hotelName)}" placeholder="Nom de l'hôtel"></label>
+    <label><span>Adresse</span><input id="f-haddr" value="${esc(s.hotelAddress)}" placeholder="Adresse"></label>
+    <label><span>Trajet depuis l'aéroport (résumé court)</span><input id="f-drive" value="${esc(s.driveTime)}" placeholder="25 min en taxi"></label>
+    <div class="fieldnote">Affiché dans la case du prochain vol, à l'Accueil.</div>
+    <label><span>Comment y aller (détail)</span><textarea id="f-hhow" placeholder="Taxi depuis l'aéroport, compteur ou tarif fixe…">${esc(s.hotelHow)}</textarea></label>
+    <label><span>Lien (carte / itinéraire)</span><input id="f-hlink" value="${esc(s.hotelLink)}" placeholder="https://maps.google.com/…"></label>
+  `, [
+    {label:"Enregistrer", cls:"pri", act:()=>{
+      const name = $("#f-name").value.trim();
+      if(!name){ toast("Indiquez un nom"); return; }
+      const o = {id:s.id||uid(), name, start:$("#f-start").value, end:$("#f-end").value, img,
+                 driveTime:$("#f-drive").value.trim(),
+                 hotelName:$("#f-hname").value.trim(), hotelAddress:$("#f-haddr").value.trim(),
+                 hotelHow:$("#f-hhow").value.trim(), hotelLink:$("#f-hlink").value.trim()};
+      if(s.id) t.stages[t.stages.findIndex(x=>x.id===s.id)] = o; else t.stages.push(o);
+      t.stages.sort((a,b)=>(a.start||"").localeCompare(b.start||""));
+      save(); back();
+    }},
+    {label:"Annuler", act:back}
+  ]);
+  $("#btnPick").onclick = () => pickImage(d => { img = d; $("#thumbImg").src = d; $("#thumbImg").style.display=""; });
+  $("#btnClr").onclick = () => { img = ""; $("#thumbImg").style.display="none"; };
+}
+function delStage(id, fromSettings){
+  const t = trip();
+  if(!confirm("Retirer cette étape ? Les activités et postes rattachés seront conservés, mais détachés.")) return;
+  t.stages = t.stages.filter(s=>s.id!==id);
+  t.acts.forEach(a=>{ if(a.stage===id) a.stage=""; });
+  t.budget.forEach(b=>{ if(b.stage===id) b.stage=""; });
+  save(); closeDrawer(); if(fromSettings) openTripSettings(); else render();
+}
+
+function switchTrip(id){ db.activeId = id; expanded.clear(); expandedInit = false; expandedHi.clear(); expandedHiInit = false; expandedTripId = id; save(); closeDrawer(); render(); }
+function newTrip(){
+  const t = blankTrip("Nouveau voyage");
+  db.trips.push(t); db.activeId = t.id;
+  expanded.clear(); expandedInit = false; expandedHi.clear(); expandedHiInit = false; expandedTripId = t.id;
+  save(); closeDrawer(); view = "accueil"; render(); toast("Voyage créé — complétez ses dates et étapes depuis Destinations");
+}
+function dupTrip(id){ const src = db.trips.find(t=>t.id===id); const c = JSON.parse(JSON.stringify(src)); c.id = uid(); c.name = src.name + " (copie)"; db.trips.push(c); db.activeId = c.id; expanded.clear(); expandedInit = false; expandedHi.clear(); expandedHiInit = false; expandedTripId = c.id; save(); closeDrawer(); render(); toast("Voyage dupliqué"); }
+function delTrip(id){
+  if(db.trips.length === 1){ toast("Gardez au moins un voyage"); return; }
+  const t = db.trips.find(x=>x.id===id);
+  if(!confirm(`Supprimer « ${t.name} » ? Cette action est définitive.`)) return;
+  db.trips = db.trips.filter(x=>x.id!==id);
+  if(db.activeId===id) db.activeId = db.trips[0].id;
+  if(expandedTripId===id) expandedTripId = db.activeId;
+  save(); closeDrawer(); render(); toast("Voyage supprimé");
+}
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(db,null,2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "voyages-" + d2s(today()) + ".json";
+  a.click(); URL.revokeObjectURL(a.href); toast("Fichier exporté");
+}
+function importJSON(){
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = "application/json,.json";
+  inp.onchange = () => {
+    const f = inp.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try{
+        const d = JSON.parse(rd.result);
+        if(!d.trips || !Array.isArray(d.trips)) throw 0;
+        if(!confirm("Remplacer les données actuelles par le fichier importé ?")) return;
+        db = migrate(d); if(!db.trips.find(t=>t.id===db.activeId)) db.activeId = db.trips[0].id;
+        save(); closeDrawer(); render(); toast("Données importées");
+      }catch(e){ toast("Fichier illisible ou format inattendu"); }
+    };
+    rd.readAsText(f);
+  };
+  inp.click();
+}
+
+boot();
+</script>
+</body>
+</html>
