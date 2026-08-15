@@ -1201,6 +1201,18 @@ function stageOpts(sel){ const t = trip(); return `<option value="">— aucune �
 function catOpts(sel){ return CATS.map(c => `<option ${c===sel?"selected":""}>${c}</option>`).join(""); }
 
 /* ============================================================ Réglages du voyage ============================================================ */
+function commitTripSettingsFields(){
+  if(!$("#f-name")) return;
+  const t = trip();
+  const r = getCalRange("trip");
+  t.name = $("#f-name").value.trim() || t.name;
+  if(r.start) t.start = r.start;
+  if(r.end) t.end = r.end;
+  t.travelers = {adults:Math.max(0,+$("#f-adults").value||0), children:Math.max(0,+$("#f-children").value||0), babies:Math.max(0,+$("#f-babies").value||0)};
+  t.currency = $("#f-cur").value;
+  save();
+}
+
 function openTripSettings(){
   const t = trip();
   openDrawer("Réglages du voyage", `
@@ -1216,24 +1228,24 @@ function openTripSettings(){
     <label><span>Devise</span><select id="f-cur">${["EUR","USD","GBP","CHF","MAD","EGP","SAR","XOF"].map(c=>`<option ${c===t.currency?"selected":""}>${c}</option>`).join("")}</select></label>
     <div class="row" style="justify-content:space-between;align-items:baseline;margin-top:18px">
       <span style="font-size:12px;color:var(--text-dim)">Étapes / destinations</span>
-      <button class="btn" type="button" onclick="editStage(null, true)">+ ajouter</button>
+      <button class="btn" type="button" onclick="commitTripSettingsFields();editStage(null, true)">+ ajouter</button>
     </div>
     <div class="mini-list">
       ${t.stages.map(s=>`<div class="mini-row">
         <span>${esc(s.name)} <span class="sub">${fmtDate(s.start)}→${fmtDate(s.end)}</span></span>
         <span class="row" style="gap:6px">
-          <button class="btn" type="button" style="padding:3px 8px" onclick="editStage('${s.id}', true)">Modifier</button>
-          <button class="btn danger" type="button" style="padding:3px 8px" onclick="delStage('${s.id}', true)">Retirer</button>
+          <button class="btn" type="button" style="padding:3px 8px" onclick="commitTripSettingsFields();editStage('${s.id}', true)">Modifier</button>
+          <button class="btn danger" type="button" style="padding:3px 8px" onclick="commitTripSettingsFields();delStage('${s.id}', true)">Retirer</button>
         </span></div>`).join("") || `<div class="mini-row"><span class="sub">Aucune</span></div>`}
     </div>
     <div style="margin-top:22px">
       <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">Sauvegarde</div>
-      <div class="row"><button class="btn" type="button" onclick="exportJSON()">Exporter</button><button class="btn" type="button" onclick="importJSON()">Importer</button></div>
+      <div class="row"><button class="btn" type="button" onclick="commitTripSettingsFields();exportJSON()">Exporter</button><button class="btn" type="button" onclick="importJSON()">Importer</button></div>
       <div style="font-size:11.5px;color:var(--text-faint);margin-top:8px">Les données restent dans ce navigateur — exportez avant de changer d'appareil.
       ${memoryOnly?`<br><span style="color:var(--warn)">Stockage indisponible ici : vos saisies disparaîtront en fermant l'onglet.</span>`:""}</div>
     </div>
     <div class="hr"></div>
-    <button class="btn danger" type="button" onclick="delTrip(trip().id)">Supprimer ce voyage</button>
+    <button class="btn danger" type="button" onclick="commitTripSettingsFields();delTrip(trip().id)">Supprimer ce voyage</button>
   `, [
     {label:"Enregistrer", cls:"pri", act:()=>{
       const r = getCalRange("trip");
