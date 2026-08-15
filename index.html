@@ -191,6 +191,7 @@ label>span{display:block;font-size:12px;color:var(--text-dim);margin-bottom:4px}
 input,select,textarea{background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--r);padding:8px 9px;width:100%}
 textarea{resize:vertical;min-height:56px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .hr{border-top:1px solid var(--line);margin:16px 0}
 .fieldnote{font-size:11.5px;color:var(--text-faint);margin:-6px 0 12px}
 
@@ -326,13 +327,13 @@ function save(){ store.write(db); }
 
 function blankTrip(name){
   const s = d2s(today()), e = d2s(new Date(today().getTime()+6*864e5));
-  return { id:uid(), name:name||"Nouveau voyage", currency:"EUR", travelers:1, start:s, end:e, stages:[], acts:[], budget:[], tasks:[], todos:[], journal:[], highlights:[] };
+  return { id:uid(), name:name||"Nouveau voyage", currency:"EUR", travelers:{adults:1,children:0,babies:0}, start:s, end:e, stages:[], acts:[], budget:[], tasks:[], todos:[], journal:[], highlights:[] };
 }
 
 function seed(){
   const t = blankTrip("Exemple — à remplacer");
   const s = d2s(new Date(today().getTime()+30*864e5)), e = d2s(new Date(today().getTime()+37*864e5));
-  t.travelers = 2; t.start = s; t.end = e;
+  t.travelers = {adults:2,children:0,babies:0}; t.start = s; t.end = e;
   const s1 = uid();
   t.stages = [
     {id:s1, name:"Ma destination", start:s, end:e, img:"", lat:null, lng:null, hotelName:"", hotelAddress:"", hotelHow:"", hotelLink:""}
@@ -355,8 +356,20 @@ function seed(){
 }
 
 function migrate(database){
-  database.trips.forEach(t => { if(!t.todos) t.todos = []; if(!t.journal) t.journal = []; if(!t.highlights) t.highlights = []; });
+  database.trips.forEach(t => {
+    if(!t.todos) t.todos = []; if(!t.journal) t.journal = []; if(!t.highlights) t.highlights = [];
+    if(typeof t.travelers === "number") t.travelers = {adults:t.travelers, children:0, babies:0};
+    if(!t.travelers) t.travelers = {adults:1, children:0, babies:0};
+  });
   return database;
+}
+function travelerCount(t){ const v = t.travelers||{}; return (v.adults||0)+(v.children||0)+(v.babies||0); }
+function travelerLabel(t){
+  const v = t.travelers||{}; const bits = [];
+  if(v.adults) bits.push(v.adults+" adulte"+(v.adults>1?"s":""));
+  if(v.children) bits.push(v.children+" enfant"+(v.children>1?"s":""));
+  if(v.babies) bits.push(v.babies+" bébé"+(v.babies>1?"s":""));
+  return bits.join(", ") || "—";
 }
 
 function boot(){
@@ -477,7 +490,7 @@ function viewTripDetails(id){
     </div>
     <div style="margin-bottom:16px">
       <div class="fieldnote" style="margin:0 0 4px">Voyageurs</div>
-      <div>${t.travelers}</div>
+      <div>${travelerLabel(t)}</div>
     </div>
     <div style="margin-bottom:4px">
       <div class="fieldnote" style="margin:0 0 4px">Étapes</div>
@@ -819,7 +832,7 @@ function renderBudget(t){
   html += `<div class="gcard tot-card">
     <div class="tot-label">Budget total</div>
     <div class="tot-num">${money(pl)}</div>
-    <div class="tot-sub">réel engagé ${money(ac)}${t.travelers>1?` · ${money(pl/t.travelers)} / personne`:""}</div>
+    <div class="tot-sub">réel engagé ${money(ac)}${travelerCount(t)>1?` · ${money(pl/travelerCount(t))} / personne`:""}</div>
     ${pl?`<div class="tot-bar"><i style="width:${Math.min(100,ac/pl*100)}%;background:${ac>pl?"var(--bad)":"var(--accent)"}"></i></div>`:""}
   </div>`;
 
@@ -846,7 +859,7 @@ function renderBudget(t){
       }).join("")}
     </div>`;
   });
-  if(t.travelers > 1) html += `<div class="perperson">${money(pl/t.travelers)} / personne</div>`;
+  if(travelerCount(t) > 1) html += `<div class="perperson">${money(pl/travelerCount(t))} / personne</div>`;
   el.innerHTML = html;
 }
 
@@ -881,7 +894,10 @@ function editBudget(id){
 /* ============================================================ Formalités ============================================================ */
 function renderFormalites(t){
   const el = $("#v-formalites");
-  let html = `<div class="row" style="justify-content:flex-end;margin-bottom:4px"><button class="btn" onclick="editTask(null)">+ ajouter</button></div>`;
+  let html = `<div class="row" style="justify-content:flex-end;margin-bottom:4px;gap:6px">
+    <button class="btn" onclick="openSuggestions()">💡 Suggestions</button>
+    <button class="btn" onclick="editTask(null)">+ ajouter</button>
+  </div>`;
   if(!t.tasks.length){ html += `<div class="empty">Visas, vaccins, réservations : rien pour l'instant.</div>`; el.innerHTML = html; return; }
   const list = [...t.tasks].sort((a,b)=> (a.done-b.done) || (a.due||"9999").localeCompare(b.due||"9999"));
   html += list.map(x=>`
@@ -914,6 +930,49 @@ function editTask(id){
     }},
     ...(id?[{label:"Supprimer", cls:"danger", act:()=>{ t.tasks = t.tasks.filter(v=>v.id!==id); save(); closeDrawer(); render(); toast("Formalité supprimée"); }}]:[]),
     {label:"Annuler", act:closeDrawer}
+  ]);
+}
+
+/* ============================================================ Suggestions de préparatifs ============================================================ */
+const SUGGEST_GENERAL = [
+  "Trousse de soins (médicaments courants, pansements)",
+  "Copies des passeports et documents importants",
+  "Adaptateur électrique universel",
+  "Batterie externe (powerbank)",
+  "Assurance voyage",
+  "Un peu d'argent liquide en devise locale",
+  "Chargeurs et câbles"
+];
+const SUGGEST_BABY = [
+  "Couches et lingettes",
+  "Biberons et lait infantile",
+  "Poussette compacte ou porte-bébé",
+  "Carnet de santé de l'enfant"
+];
+const SUGGEST_CHILD = [
+  "Occupations pour le trajet (livres, jeux)",
+  "Médicaments enfant (paracétamol pédiatrique)"
+];
+
+function openSuggestions(){
+  const t = trip();
+  const v = t.travelers||{};
+  const list = [...SUGGEST_GENERAL, ...((v.babies||0)>0?SUGGEST_BABY:[]), ...((v.children||0)>0?SUGGEST_CHILD:[])];
+  const existing = new Set(t.tasks.map(x=>x.label));
+  openDrawer("Suggestions", `
+    <div class="fieldnote" style="margin-top:0">Cochez ce qui est pertinent pour ce voyage, puis ajoutez.</div>
+    ${list.map(label=>`
+      <label class="row" style="gap:8px;align-items:flex-start;margin-bottom:10px">
+        <input type="checkbox" class="sugg-chk" value="${esc(label)}" style="width:auto;margin-top:3px" ${existing.has(label)?"disabled checked":""}>
+        <span style="margin:0;font-size:13.5px;${existing.has(label)?"color:var(--text-faint)":""}">${esc(label)}${existing.has(label)?" — déjà dans la liste":""}</span>
+      </label>`).join("")}
+  `, [
+    {label:"Ajouter la sélection", cls:"pri", act:()=>{
+      const checked = [...document.querySelectorAll(".sugg-chk:checked:not(:disabled)")].map(c=>c.value);
+      checked.forEach(label => t.tasks.push({id:uid(), label, due:"", notes:"", done:false}));
+      save(); closeDrawer(); render(); toast(checked.length ? `${checked.length} ajoutée(s)` : "Rien de sélectionné");
+    }},
+    {label:"Fermer", act:closeDrawer}
   ]);
 }
 
@@ -1148,10 +1207,13 @@ function openTripSettings(){
     <label><span>Nom du voyage</span><input id="f-name" value="${esc(t.name)}"></label>
     <label><span>Dates du voyage</span></label>
     ${calendarBlock("trip", t.start, t.end)}
-    <div class="grid2">
-      <label><span>Voyageurs</span><input type="number" min="1" id="f-trav" value="${t.travelers}"></label>
-      <label><span>Devise</span><select id="f-cur">${["EUR","USD","GBP","CHF","MAD","EGP","SAR","XOF"].map(c=>`<option ${c===t.currency?"selected":""}>${c}</option>`).join("")}</select></label>
+    <label><span>Voyageurs</span></label>
+    <div class="grid3">
+      <label><span>Adultes</span><input type="number" min="0" id="f-adults" value="${t.travelers.adults||0}"></label>
+      <label><span>Enfants</span><input type="number" min="0" id="f-children" value="${t.travelers.children||0}"></label>
+      <label><span>Bébés</span><input type="number" min="0" id="f-babies" value="${t.travelers.babies||0}"></label>
     </div>
+    <label><span>Devise</span><select id="f-cur">${["EUR","USD","GBP","CHF","MAD","EGP","SAR","XOF"].map(c=>`<option ${c===t.currency?"selected":""}>${c}</option>`).join("")}</select></label>
     <div class="row" style="justify-content:space-between;align-items:baseline;margin-top:18px">
       <span style="font-size:12px;color:var(--text-dim)">Étapes / destinations</span>
       <button class="btn" type="button" onclick="editStage(null, true)">+ ajouter</button>
@@ -1177,7 +1239,8 @@ function openTripSettings(){
       const r = getCalRange("trip");
       t.name = $("#f-name").value.trim() || "Voyage";
       t.start = r.start || t.start; t.end = r.end || t.end;
-      t.travelers = Math.max(1, +$("#f-trav").value||1); t.currency = $("#f-cur").value;
+      t.travelers = {adults:Math.max(0,+$("#f-adults").value||0), children:Math.max(0,+$("#f-children").value||0), babies:Math.max(0,+$("#f-babies").value||0)};
+      t.currency = $("#f-cur").value;
       save(); closeDrawer(); render(); toast("Voyage mis à jour");
     }},
     {label:"Fermer", act:closeDrawer}
