@@ -58,12 +58,21 @@ main{max-width:640px;margin:0 auto;padding:18px 16px 70px}
   display:flex;align-items:flex-end;background:#201e19 center/cover no-repeat}
 .hero::before{content:"";position:absolute;inset:0;
   background:linear-gradient(to top, rgba(8,7,5,.82), rgba(8,7,5,.25) 55%, rgba(8,7,5,.05))}
-.hero .glass{position:relative;z-index:1;width:100%;margin:12px;padding:14px 16px;border-radius:7px;
-  background:rgba(19,17,13,.46);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);
-  border:1px solid rgba(255,255,255,.15)}
-.hero .dest{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(234,231,225,.7)}
-.hero .cd{font-family:var(--mono);font-size:30px;letter-spacing:-.03em;color:#fff;margin-top:2px}
-.hero .cd span{font-size:12px;color:rgba(234,231,225,.6);font-weight:400;margin-left:7px;letter-spacing:0}
+.hero .glass{position:relative;z-index:1;width:100%;margin:12px;padding:16px 18px;border-radius:7px;
+  background:rgba(15,17,17,.5);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);
+  border:1px solid rgba(45,212,191,.22)}
+.hero .glass::before, .hero .glass::after{content:"";position:absolute;width:14px;height:14px;
+  border:2px solid var(--accent);opacity:.85;pointer-events:none}
+.hero .glass::before{top:-1px;left:-1px;border-right:none;border-bottom:none;border-top-left-radius:6px}
+.hero .glass::after{bottom:-1px;right:-1px;border-left:none;border-top:none;border-bottom-right-radius:6px}
+.hero .pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);
+  margin-right:6px;box-shadow:0 0 7px var(--accent);animation:hpulse 2s ease-in-out infinite;vertical-align:middle}
+@keyframes hpulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero .dest{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.hero .hname{font-size:21px;font-weight:800;letter-spacing:-.02em;color:#fff;margin-top:4px}
+.hero .cd{font-family:var(--mono);font-size:30px;letter-spacing:-.03em;color:#fff;margin-top:8px;
+  text-shadow:0 0 20px rgba(45,212,191,.55)}
+.hero .cd span{font-size:12px;color:rgba(234,231,225,.6);font-weight:400;margin-left:7px;letter-spacing:0;text-shadow:none}
 .hero .grows{margin-top:12px;border-top:1px solid rgba(255,255,255,.16);padding-top:8px}
 .hero .grow{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#fff}
 .hero .grow .k{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:rgba(234,231,225,.55);padding-top:2px}
@@ -79,11 +88,13 @@ main{max-width:640px;margin:0 auto;padding:18px 16px 70px}
 .hotel-name{font-size:14.5px;font-weight:600}
 .hotel-addr{font-size:12.5px;color:var(--text-dim);margin-top:2px}
 .hotel-how{font-size:12.5px;color:var(--text-dim);margin-top:8px;padding-top:8px;border-top:1px solid var(--line-soft)}
-.dest-row{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--line-soft)}
+.dest-row{display:block;width:100%;text-align:left;padding:10px 0;border-top:1px solid var(--line-soft)}
 .dest-row:first-of-type{border-top:none}
-.dest-row .ti{font-size:13.5px}
-.dest-row .mt{font-size:11.5px;color:var(--text-faint);margin-top:1px}
-.dest-row .cdmini{font-family:var(--mono);font-size:11px;color:var(--accent);flex:0 0 auto;padding-top:2px;white-space:nowrap}
+.dest-row .dr-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.dest-row .ti{font-size:14px;font-weight:600}
+.dest-row .dr-dest{font-size:11.5px;color:var(--text-dim);margin-top:4px}
+.dest-row .dr-dates{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);margin-top:2px}
+.dest-row .cdmini{font-family:var(--mono);font-size:11px;color:var(--accent);flex:0 0 auto;white-space:nowrap}
 
 /* ---------- itinerary accordion (voyage > étape > jours) ---------- */
 .trip-card{padding:2px 0}
@@ -94,8 +105,8 @@ main{max-width:640px;margin:0 auto;padding:18px 16px 70px}
 .trip-head .sname{font-size:17px;font-weight:700;letter-spacing:-.01em}
 .stage-head .sname{font-size:15.5px;font-weight:640;letter-spacing:-.01em}
 .trip-head .smeta, .stage-head .smeta{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-top:3px}
-.icon-btn{flex:0 0 auto;width:28px;height:28px;display:flex;align-items:center;justify-content:center;
-  border-radius:6px;color:var(--text-dim);font-size:13px}
+.icon-btn{flex:0 0 auto;width:23px;height:23px;display:flex;align-items:center;justify-content:center;
+  border-radius:6px;color:var(--text-dim);font-size:11px}
 .icon-btn:hover{background:rgba(255,255,255,.06);color:var(--text)}
 .icon-btn.danger:hover{color:var(--bad)}
 .chev{font-family:var(--mono);color:var(--accent);font-size:16px;flex:0 0 auto;width:20px;text-align:center}
@@ -197,6 +208,19 @@ textarea{resize:vertical;min-height:56px}
   overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
 .thumb-wrap img{width:100%;height:100%;object-fit:cover}
 .mini-list{border-top:1px solid var(--line);margin-top:4px}
+.cal{margin-bottom:14px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-label{font-family:var(--mono);font-size:12.5px;text-transform:capitalize}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);font-family:var(--mono);font-size:9.5px;
+  color:var(--text-faint);text-align:center;margin-bottom:4px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12.5px;
+  border-radius:6px;background:var(--bg-alt);border:1px solid var(--line);color:var(--text)}
+.cal-day.sel-start, .cal-day.sel-end{background:var(--accent);color:var(--accent-ink);font-weight:700;border-color:var(--accent)}
+.cal-day.in-range{background:rgba(45,212,191,.16);border-color:transparent}
+.cal-empty{aspect-ratio:1}
+.cal-sel{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-dim);margin-top:8px}
+.cal-sel b{color:var(--text);font-weight:600}
 .mini-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
 .mini-row .sub{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
 
@@ -422,11 +446,9 @@ function destinationsCardHTML(){
       const jj = daysBetween(td, x.start);
       const cd = jj>0 ? "J-"+jj : (jj===0 ? "Aujourd'hui" : "En cours");
       return `<button class="dest-row" onclick="viewTripDetails('${x.id}')">
-        <span class="main">
-          <span class="ti">${esc(x.name)}</span>
-          <span class="mt">${esc(dest)} · ${fmtDate(x.start)} → ${fmtDate(x.end)}</span>
-        </span>
-        <span class="cdmini">${cd}</span>
+        <div class="dr-top"><span class="ti">${esc(x.name)}</span><span class="cdmini">${cd}</span></div>
+        <div class="dr-dest">${esc(dest)}</div>
+        <div class="dr-dates">${fmtDate(x.start)} → ${fmtDate(x.end)}</div>
       </button>`;
     }).join("")}
   </div>`;
@@ -457,14 +479,71 @@ function viewTripDetails(id){
   ]);
 }
 
+/* ============================================================ Météo & heure locale (Open-Meteo, gratuit, sans clé) ============================================================ */
+const wxCache = {};
+let parisOffsetSeconds = null;
+const WMO_ICON = {0:"☀️",1:"🌤",2:"⛅",3:"☁️",45:"🌫",48:"🌫",51:"🌦",53:"🌦",55:"🌦",56:"🌦",57:"🌦",
+  61:"🌧",63:"🌧",65:"🌧",66:"🌧",67:"🌧",71:"🌨",73:"🌨",75:"🌨",77:"🌨",80:"🌦",81:"🌦",82:"⛈",85:"🌨",86:"🌨",95:"⛈",96:"⛈",99:"⛈"};
+
+async function fetchParisOffset(){
+  if(parisOffsetSeconds !== null) return parisOffsetSeconds;
+  try{
+    const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=48.8566&longitude=2.3522&current_weather=true&timezone=auto");
+    const d = await r.json();
+    parisOffsetSeconds = d.utc_offset_seconds ?? 3600;
+  }catch(e){ parisOffsetSeconds = 3600; }
+  return parisOffsetSeconds;
+}
+
+async function fetchWeather(stage){
+  if(!stage || !stage.name) return null;
+  const c = wxCache[stage.id];
+  if(c && (Date.now()-c.fetchedAt) < 30*60*1000) return c;
+  try{
+    const g = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(stage.name)}&count=1&language=fr`);
+    const gd = await g.json();
+    if(!gd.results || !gd.results.length) return null;
+    const {latitude, longitude} = gd.results[0];
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&timezone=auto`);
+    const d = await r.json();
+    const data = {temp:d.current_weather.temperature, code:d.current_weather.weathercode, utcOffsetSeconds:d.utc_offset_seconds, fetchedAt:Date.now()};
+    wxCache[stage.id] = data;
+    return data;
+  }catch(e){ return null; }
+}
+
+function updateWxDisplay(data){
+  const el = document.getElementById("wxLine");
+  if(!el || !data) return;
+  const now = new Date(Date.now() + data.utcOffsetSeconds*1000);
+  const hh = String(now.getUTCHours()).padStart(2,"0"), mm = String(now.getUTCMinutes()).padStart(2,"0");
+  const diffH = Math.round((data.utcOffsetSeconds - (parisOffsetSeconds??3600))/3600);
+  const diffTxt = diffH===0 ? "comme Paris" : (diffH>0 ? `Paris +${diffH}h` : `Paris ${diffH}h`);
+  el.textContent = `${WMO_ICON[data.code]||"🌡"} ${Math.round(data.temp)}°C · ${hh}:${mm} · ${diffTxt}`;
+}
+
+async function loadWeatherLine(stage){
+  const el = document.getElementById("wxLine");
+  if(!el || !stage) return;
+  const data = await fetchWeather(stage);
+  if(!document.getElementById("wxLine")) return; // vue changée entre-temps
+  if(!data){ document.getElementById("wxLine").textContent = "indisponible"; return; }
+  await fetchParisOffset();
+  updateWxDisplay(data);
+}
+
 function tickAccueil(t){
   const el = document.getElementById("accCheckin");
-  if(!el) return;
-  const fl = nextFlight(t);
-  if(fl && fl.checkin){
-    const ci = new Date(fl.checkin), dep = fl._dt, now = new Date();
-    el.textContent = now<ci ? "ouvre dans "+until(ci) : (now<dep ? "ouvert" : "clôturé");
+  if(el){
+    const fl = nextFlight(t);
+    if(fl && fl.checkin){
+      const ci = new Date(fl.checkin), dep = fl._dt, now = new Date();
+      el.textContent = now<ci ? "ouvre dans "+until(ci) : (now<dep ? "ouvert" : "clôturé");
+    }
   }
+  const fl2 = nextFlight(t);
+  const hs = (fl2 && fl2.stage && t.stages.find(s=>s.id===fl2.stage)) || relevantStage(t);
+  if(hs && wxCache[hs.id]) updateWxDisplay(wxCache[hs.id]);
 }
 
 /* ============================================================ Accueil ============================================================ */
@@ -508,13 +587,15 @@ function renderAccueil(t){
     const n = daysBetween(heroStage.start, heroStage.end);
     if(heroStage.driveTime) rows.push(["Trajet → hôtel", esc(heroStage.driveTime)]);
     rows.push(["Sur place", n>0 ? n+" nuits" : "—"]);
+    rows.push(["Météo / heure", `<span id="wxLine">chargement…</span>`]);
   }
 
   const bg = heroStage && heroStage.img ? `background-image:url('${heroStage.img}')` : `background-image:${ph(destName)}`;
   el.innerHTML = `
     <div class="hero" style="${bg}">
       <div class="glass">
-        <div class="dest">${esc(destName)}</div>
+        <div class="dest"><span class="pulse"></span>NEXT DESTINATION</div>
+        <div class="hname">${esc(destName)}</div>
         <div class="cd">${cdVal}<span>${cdLabel}</span></div>
         <div class="grows">
           ${rows.map(r=>`<div class="grow"><span class="k">${r[0]}</span><span class="v">${r[1]}</span></div>`).join("")}
@@ -523,6 +604,7 @@ function renderAccueil(t){
     </div>
   ` + destinationsCardHTML();
   renderAccueilCards(t, heroStage);
+  if(heroStage) loadWeatherLine(heroStage);
 }
 
 function renderAccueilCards(t, heroStage){
@@ -648,10 +730,11 @@ function tripSection(x){
 
 function renderItineraire(){
   const el = $("#v-itineraire");
-  if(!db.trips.length){ el.innerHTML = `<div class="empty">Aucun voyage. Créez-en un depuis l'Accueil.</div>`; return; }
+  const addRow = `<div class="row" style="justify-content:flex-end;margin-bottom:10px"><button class="btn" onclick="newTrip()">+ Nouveau voyage</button></div>`;
+  if(!db.trips.length){ el.innerHTML = addRow + `<div class="empty">Aucun voyage. Créez-en un ci-dessus.</div>`; return; }
   if(!expandedTripInit){ expandedTripInit = true; expandedTripId = db.activeId; }
   const ordered = [...db.trips].sort((a,b)=>(a.start||"").localeCompare(b.start||""));
-  el.innerHTML = ordered.map(tripSection).join("");
+  el.innerHTML = addRow + ordered.map(tripSection).join("");
 }
 
 function editAct(id, presetDate){
@@ -973,6 +1056,67 @@ function confirmAction(message, onYes){
 }
 $("#scrim").addEventListener("click", closeDrawer);
 document.addEventListener("keydown", e => { if(e.key==="Escape" && !$("#drawer").hidden) closeDrawer(); });
+/* ============================================================ Calendrier de plage de dates (départ + retour sur le même calendrier) ============================================================ */
+const calStates = {};
+function calState(prefix){ return calStates[prefix]; }
+
+function calendarBlock(prefix, start, end){
+  calStates[prefix] = {month: start ? s2d(start) : today(), start: start||null, end: end||null};
+  return `<div class="cal">
+    <div class="cal-head">
+      <button type="button" class="btn" style="padding:4px 10px" onclick="calNav('${prefix}',-1)">‹</button>
+      <span class="cal-label" id="calLabel-${prefix}"></span>
+      <button type="button" class="btn" style="padding:4px 10px" onclick="calNav('${prefix}',1)">›</button>
+    </div>
+    <div class="cal-dow">L M M J V S D</div>
+    <div class="cal-grid" id="calGrid-${prefix}"></div>
+    <div class="cal-sel"><span>Départ <b id="calS-${prefix}">—</b></span><span>Retour <b id="calE-${prefix}">—</b></span></div>
+  </div>`;
+}
+
+function paintCalendar(prefix){
+  const st = calState(prefix); if(!st) return;
+  const y = st.month.getFullYear(), m = st.month.getMonth();
+  const lbl = document.getElementById("calLabel-"+prefix);
+  if(!lbl) return; // le drawer a changé
+  lbl.textContent = MOIS[m].replace(".","")+" "+y;
+  const first = new Date(y,m,1);
+  const startDow = (first.getDay()+6)%7;
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  let html = "";
+  for(let i=0;i<startDow;i++) html += `<span class="cal-empty"></span>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const ds = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    let cls = "cal-day";
+    if(st.start && ds===st.start) cls += " sel-start";
+    if(st.end && ds===st.end) cls += " sel-end";
+    if(st.start && st.end && ds>st.start && ds<st.end) cls += " in-range";
+    html += `<button type="button" class="${cls}" onclick="calPick('${prefix}','${ds}')">${d}</button>`;
+  }
+  document.getElementById("calGrid-"+prefix).innerHTML = html;
+  document.getElementById("calS-"+prefix).textContent = st.start ? fmtDate(st.start) : "—";
+  document.getElementById("calE-"+prefix).textContent = st.end ? fmtDate(st.end) : "—";
+}
+
+function calNav(prefix, dir){
+  const st = calState(prefix); if(!st) return;
+  st.month = new Date(st.month.getFullYear(), st.month.getMonth()+dir, 1);
+  paintCalendar(prefix);
+}
+
+function calPick(prefix, ds){
+  const st = calState(prefix); if(!st) return;
+  if(!st.start || (st.start && st.end) || ds < st.start){ st.start = ds; st.end = null; }
+  else { st.end = ds; }
+  paintCalendar(prefix);
+}
+
+function getCalRange(prefix){
+  const st = calState(prefix);
+  if(!st || !st.start) return {start:"", end:""};
+  return {start: st.start, end: st.end || st.start};
+}
+
 function stageOpts(sel){ const t = trip(); return `<option value="">— aucune étape —</option>` + t.stages.map(s => `<option value="${s.id}" ${s.id===sel?"selected":""}>${esc(s.name)}</option>`).join(""); }
 function catOpts(sel){ return CATS.map(c => `<option ${c===sel?"selected":""}>${c}</option>`).join(""); }
 
@@ -981,10 +1125,8 @@ function openTripSettings(){
   const t = trip();
   openDrawer("Réglages du voyage", `
     <label><span>Nom du voyage</span><input id="f-name" value="${esc(t.name)}"></label>
-    <div class="grid2">
-      <label><span>Début</span><input type="date" id="f-start" value="${t.start}"></label>
-      <label><span>Fin</span><input type="date" id="f-end" value="${t.end}"></label>
-    </div>
+    <label><span>Dates du voyage</span></label>
+    ${calendarBlock("trip", t.start, t.end)}
     <div class="grid2">
       <label><span>Voyageurs</span><input type="number" min="1" id="f-trav" value="${t.travelers}"></label>
       <label><span>Devise</span><select id="f-cur">${["EUR","USD","GBP","CHF","MAD","EGP","SAR","XOF"].map(c=>`<option ${c===t.currency?"selected":""}>${c}</option>`).join("")}</select></label>
@@ -1011,13 +1153,15 @@ function openTripSettings(){
     <button class="btn danger" type="button" onclick="delTrip(trip().id)">Supprimer ce voyage</button>
   `, [
     {label:"Enregistrer", cls:"pri", act:()=>{
+      const r = getCalRange("trip");
       t.name = $("#f-name").value.trim() || "Voyage";
-      t.start = $("#f-start").value; t.end = $("#f-end").value;
+      t.start = r.start || t.start; t.end = r.end || t.end;
       t.travelers = Math.max(1, +$("#f-trav").value||1); t.currency = $("#f-cur").value;
       save(); closeDrawer(); render(); toast("Voyage mis à jour");
     }},
     {label:"Fermer", act:closeDrawer}
   ]);
+  paintCalendar("trip");
 }
 
 function editStage(id, fromSettings){
@@ -1027,10 +1171,8 @@ function editStage(id, fromSettings){
   const back = () => { closeDrawer(); if(fromSettings) openTripSettings(); else render(); };
   openDrawer(id?"Modifier l'étape":"Nouvelle étape", `
     <label><span>Nom</span><input id="f-name" value="${esc(s.name)}" placeholder="Hurghada"></label>
-    <div class="grid2">
-      <label><span>Arrivée</span><input type="date" id="f-start" value="${s.start}"></label>
-      <label><span>Départ</span><input type="date" id="f-end" value="${s.end}"></label>
-    </div>
+    <label><span>Dates sur place</span></label>
+    ${calendarBlock("stage", s.start, s.end)}
     <label><span>Photo de la destination</span></label>
     <div class="thumb-wrap"><img id="thumbImg" src="${img||""}" alt="" style="${img?"":"display:none"}"></div>
     <div class="row" style="margin-bottom:16px">
@@ -1048,7 +1190,8 @@ function editStage(id, fromSettings){
     {label:"Enregistrer", cls:"pri", act:()=>{
       const name = $("#f-name").value.trim();
       if(!name){ toast("Indiquez un nom"); return; }
-      const o = {id:s.id||uid(), name, start:$("#f-start").value, end:$("#f-end").value, img,
+      const r = getCalRange("stage");
+      const o = {id:s.id||uid(), name, start:r.start||s.start, end:r.end||s.end, img,
                  driveTime:$("#f-drive").value.trim(),
                  hotelName:$("#f-hname").value.trim(), hotelAddress:$("#f-haddr").value.trim(),
                  hotelHow:$("#f-hhow").value.trim(), hotelLink:$("#f-hlink").value.trim()};
@@ -1058,6 +1201,7 @@ function editStage(id, fromSettings){
     }},
     {label:"Annuler", act:back}
   ]);
+  paintCalendar("stage");
   $("#btnPick").onclick = () => pickImage(d => { img = d; $("#thumbImg").src = d; $("#thumbImg").style.display=""; });
   $("#btnClr").onclick = () => { img = ""; $("#thumbImg").style.display="none"; };
 }
@@ -1073,10 +1217,23 @@ function delStage(id, fromSettings){
 
 function switchTrip(id){ db.activeId = id; expanded.clear(); expandedInit = false; expandedHi.clear(); expandedHiInit = false; expandedTripId = id; save(); closeDrawer(); render(); }
 function newTrip(){
-  const t = blankTrip("Nouveau voyage");
-  db.trips.push(t); db.activeId = t.id;
-  expanded.clear(); expandedInit = false; expandedHi.clear(); expandedHiInit = false; expandedTripId = t.id;
-  save(); closeDrawer(); view = "accueil"; render(); toast("Voyage créé — complétez ses dates et étapes depuis Destinations");
+  const s = d2s(today()), e = d2s(new Date(today().getTime()+6*864e5));
+  openDrawer("Nouveau voyage", `
+    <label><span>Nom du voyage</span><input id="f-name" placeholder="Mon prochain voyage"></label>
+    <label><span>Dates du voyage</span></label>
+    ${calendarBlock("newtrip", s, e)}
+  `, [
+    {label:"Créer", cls:"pri", act:()=>{
+      const r = getCalRange("newtrip");
+      const t = blankTrip($("#f-name").value.trim() || "Nouveau voyage");
+      t.start = r.start || t.start; t.end = r.end || t.end;
+      db.trips.push(t); db.activeId = t.id;
+      expanded.clear(); expandedInit = false; expandedHi.clear(); expandedHiInit = false; expandedTripId = t.id;
+      save(); closeDrawer(); render(); toast("Voyage créé");
+    }},
+    {label:"Annuler", act:closeDrawer}
+  ]);
+  paintCalendar("newtrip");
 }
 function dupTrip(id){ const src = db.trips.find(t=>t.id===id); const c = JSON.parse(JSON.stringify(src)); c.id = uid(); c.name = src.name + " (copie)"; db.trips.push(c); db.activeId = c.id; expanded.clear(); expandedInit = false; expandedHi.clear(); expandedHiInit = false; expandedTripId = c.id; save(); closeDrawer(); render(); toast("Voyage dupliqué"); }
 function delTrip(id){
