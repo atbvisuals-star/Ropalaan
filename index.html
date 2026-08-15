@@ -212,6 +212,14 @@ textarea{resize:vertical;min-height:56px}
 .alert-title{font-size:15.5px;font-weight:700;margin-bottom:8px}
 .alert-msg{font-size:13.5px;color:var(--text-dim);line-height:1.5;margin-bottom:16px}
 .alert-actions{display:flex;gap:8px;justify-content:flex-end}
+.hotel-sugg{position:relative}
+.hotel-sugg-list{position:absolute;left:0;right:0;top:100%;z-index:5;background:var(--bg-alt);
+  border:1px solid var(--line);border-radius:var(--r);margin-top:-6px;max-height:190px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.hotel-sugg-item{padding:8px 10px;border-top:1px solid var(--line-soft);cursor:pointer}
+.hotel-sugg-item:first-child{border-top:none}
+.hotel-sugg-item:hover{background:rgba(255,255,255,.06)}
+.hotel-sugg-item .n{font-size:12.5px}
+.hotel-sugg-item .a{font-size:10.5px;color:var(--text-faint);margin-top:2px}
 .thumb-wrap{aspect-ratio:16/10;background:var(--bg);border:1px dashed var(--line);border-radius:var(--r);
   overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
 .thumb-wrap img{width:100%;height:100%;object-fit:cover}
@@ -644,10 +652,16 @@ function renderAccueilCards(t, heroStage){
 
   let hotelCard;
   if(heroStage && (heroStage.hotelName || heroStage.hotelHow)){
+    const payBadge = heroStage.hotelPaid
+      ? `<span class="due ok" style="color:var(--accent)">Payé</span>`
+      : (heroStage.hotelPayDeadline ? `<span class="due ${dueCls(heroStage.hotelPayDeadline)}">À payer avant le ${fmtDate(heroStage.hotelPayDeadline)}</span>` : `<span class="due late">Non payé</span>`);
     hotelCard = `
       <div class="card">
-        <div class="eyebrow"><span>Hôtel — ${esc(heroStage.name)}</span></div>
-        <div class="hotel-name">${esc(heroStage.hotelName||"—")}</div>
+        <div class="eyebrow"><span>Hôtel — ${esc(heroStage.name)}</span><a href="#" onclick="editStage('${heroStage.id}');return false">Modifier</a></div>
+        <div class="row" style="justify-content:space-between;align-items:baseline">
+          <div class="hotel-name">${esc(heroStage.hotelName||"—")}</div>
+          ${payBadge}
+        </div>
         ${heroStage.hotelAddress?`<div class="hotel-addr">${esc(heroStage.hotelAddress)}</div>`:""}
         ${heroStage.hotelHow?`<div class="hotel-how">${esc(heroStage.hotelHow)}</div>`:""}
         ${heroStage.hotelLink?`<div class="row" style="margin-top:10px"><a class="btn" href="${esc(heroStage.hotelLink)}" target="_blank" rel="noopener">Itinéraire</a></div>`:""}
@@ -708,11 +722,395 @@ function stageSection(t, s){
     <button class="chev" onclick="toggleStage('${s.id}')">${isOpen?"−":"+"}</button>
   </div>`;
   if(isOpen){
-    let days = "";
+    let days = `<div class="row" style="justify-content:flex-end;margin-bottom:8px"><button class="btn" onclick="openItinSuggestions('${s.id}')">💡 Suggestions pour ${esc(s.name)}</button></div>`;
     for(let i=0;i<=n;i++) days += dayBlock(t, d2s(new Date(s2d(s.start).getTime()+i*864e5)));
     html += `<div class="stage-body">${days}</div>`;
   }
   return html;
+}
+
+/* ============================================================ Suggestions d'itinéraire (bibliothèque organisée par destination) ============================================================ */
+function normName(s){ return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim(); }
+
+const ITIN_SUGGESTIONS = {
+  "hurghada": [
+    {day:1, time:"09:30", title:"Snorkeling sur le récif proche", notes:"Excursion bateau demi-journée, eaux turquoise et poissons colorés."},
+    {day:1, time:"18:30", title:"Coucher de soleil sur la Corniche", notes:"Promenade en bord de mer, restaurants de poisson grillé."},
+    {day:2, time:"08:00", title:"Excursion à Giftun Island", notes:"Île protégée, snorkeling et farniente, journée complète."},
+    {day:3, time:"16:00", title:"Safari désert en quad ou 4x4", notes:"Coucher de soleil sur les dunes, thé bédouin traditionnel."},
+    {day:4, time:"10:00", title:"Marché local (souk d'El Dahar)", notes:"Épices, artisanat — la négociation est de coutume."}
+  ],
+  "le caire": [
+    {day:1, time:"09:00", title:"Pyramides de Gizeh et le Sphinx", notes:"Venir tôt pour éviter la chaleur et la foule."},
+    {day:1, time:"15:00", title:"Musée égyptien de la place Tahrir", notes:"Compter 2-3h, trésors de Toutânkhamon."},
+    {day:2, time:"10:00", title:"Vieux Caire et quartier copte", notes:"Églises anciennes, ruelles historiques."},
+    {day:2, time:"17:00", title:"Marché de Khan el-Khalili", notes:"Le plus grand souk du Caire, artisanat et épices."}
+  ],
+  "cairo": [
+    {day:1, time:"09:00", title:"Pyramides de Gizeh et le Sphinx", notes:"Venir tôt pour éviter la chaleur et la foule."},
+    {day:1, time:"15:00", title:"Musée égyptien de la place Tahrir", notes:"Compter 2-3h, trésors de Toutânkhamon."},
+    {day:2, time:"10:00", title:"Vieux Caire et quartier copte", notes:"Églises anciennes, ruelles historiques."},
+    {day:2, time:"17:00", title:"Marché de Khan el-Khalili", notes:"Le plus grand souk du Caire, artisanat et épices."}
+  ],
+  "la mecque": [
+    {day:1, time:"04:30", title:"Omra en heures creuses", notes:"Tôt le matin ou tard le soir : moins d'affluence autour de la Kaaba."},
+    {day:2, time:"08:00", title:"Jabal al-Nour (grotte de Hira)", notes:"Montée physique exigeante — prévoir de l'eau et de bonnes chaussures."},
+    {day:3, time:"10:00", title:"Marché Al Tan'im", notes:"Pratique pour les achats du quotidien et l'ihram de rechange."}
+  ],
+  "mecque": [
+    {day:1, time:"04:30", title:"Omra en heures creuses", notes:"Tôt le matin ou tard le soir : moins d'affluence autour de la Kaaba."},
+    {day:2, time:"08:00", title:"Jabal al-Nour (grotte de Hira)", notes:"Montée physique exigeante — prévoir de l'eau et de bonnes chaussures."},
+    {day:3, time:"10:00", title:"Marché Al Tan'im", notes:"Pratique pour les achats du quotidien et l'ihram de rechange."}
+  ],
+  "mecca": [
+    {day:1, time:"04:30", title:"Omra en heures creuses", notes:"Tôt le matin ou tard le soir : moins d'affluence autour de la Kaaba."},
+    {day:2, time:"08:00", title:"Jabal al-Nour (grotte de Hira)", notes:"Montée physique exigeante — prévoir de l'eau et de bonnes chaussures."},
+    {day:3, time:"10:00", title:"Marché Al Tan'im", notes:"Pratique pour les achats du quotidien et l'ihram de rechange."}
+  ],
+  "medine": [
+    {day:1, time:"08:00", title:"Masjid Quba", notes:"La toute première mosquée de l'Islam, à la périphérie de la ville."},
+    {day:1, time:"16:00", title:"Mont Uhud", notes:"Site historique majeur, vue dégagée sur la vallée."},
+    {day:2, time:"10:00", title:"Marché central près de Masjid an-Nabawi", notes:"Dattes, tapis de prière, souvenirs."}
+  ],
+  "medina": [
+    {day:1, time:"08:00", title:"Masjid Quba", notes:"La toute première mosquée de l'Islam, à la périphérie de la ville."},
+    {day:1, time:"16:00", title:"Mont Uhud", notes:"Site historique majeur, vue dégagée sur la vallée."},
+    {day:2, time:"10:00", title:"Marché central près de Masjid an-Nabawi", notes:"Dattes, tapis de prière, souvenirs."}
+  ],
+  "marrakech": [
+    {day:1, time:"09:00", title:"Jardin Majorelle", notes:"Réserver en ligne pour éviter la file."},
+    {day:1, time:"17:00", title:"Place Jemaa el-Fna à la tombée de la nuit", notes:"Conteurs, musiciens, stands de street food."},
+    {day:2, time:"10:00", title:"Médina et souks", notes:"Prévoir de se perdre un peu — ça fait partie du charme."}
+  ],
+  "istanbul": [
+    {day:1, time:"09:00", title:"Sainte-Sophie et Mosquée Bleue", notes:"Les deux sont à quelques minutes à pied l'une de l'autre."},
+    {day:1, time:"15:00", title:"Grand Bazar", notes:"Un des plus grands marchés couverts au monde."},
+    {day:2, time:"11:00", title:"Croisière sur le Bosphore", notes:"Belle vue sur les deux rives, Europe et Asie."}
+  ],
+  "dubai": [
+    {day:1, time:"09:00", title:"Burj Khalifa (niveau observation)", notes:"Réserver un créneau à l'avance, moins cher tôt le matin."},
+    {day:1, time:"18:00", title:"Souk de l'or et souk aux épices", notes:"Quartier de Deira, ambiance authentique."},
+    {day:2, time:"15:00", title:"Excursion désert en 4x4", notes:"Dune bashing, coucher de soleil, dîner bédouin."}
+  ],
+  "paris": [
+    {day:1, time:"09:00", title:"Tour Eiffel et Champ de Mars", notes:"Réservez vos billets en ligne pour éviter la file."},
+    {day:1, time:"14:00", title:"Musée du Louvre", notes:"Prévoyez une demi-journée, la Joconde attire du monde."},
+    {day:2, time:"10:00", title:"Montmartre et Sacré-Cœur", notes:"Ruelles pittoresques, vue panoramique sur Paris."}
+  ],
+  "londres": [
+    {day:1, time:"09:00", title:"Tower Bridge et Tower of London", notes:"Les joyaux de la Couronne s'y trouvent."},
+    {day:1, time:"14:00", title:"British Museum", notes:"Entrée gratuite, pierre de Rosette."},
+    {day:2, time:"10:00", title:"Buckingham Palace et Hyde Park", notes:"La relève de la garde n'a lieu que certains jours."}
+  ],
+  "london": [
+    {day:1, time:"09:00", title:"Tower Bridge et Tower of London", notes:"Les joyaux de la Couronne s'y trouvent."},
+    {day:1, time:"14:00", title:"British Museum", notes:"Entrée gratuite, pierre de Rosette."},
+    {day:2, time:"10:00", title:"Buckingham Palace et Hyde Park", notes:"La relève de la garde n'a lieu que certains jours."}
+  ],
+  "rome": [
+    {day:1, time:"09:00", title:"Colisée et Forum romain", notes:"Billet combiné, réservez à l'avance."},
+    {day:1, time:"15:00", title:"Fontaine de Trevi et Panthéon", notes:"Jetez une pièce, dit-on, pour revenir à Rome."},
+    {day:2, time:"09:00", title:"Musées du Vatican et Chapelle Sixtine", notes:"Arrivez tôt, la file est longue."}
+  ],
+  "barcelone": [
+    {day:1, time:"09:00", title:"Sagrada Família", notes:"Réservation obligatoire, créneaux limités."},
+    {day:1, time:"15:00", title:"Parc Güell", notes:"Réservez la zone monumentale à l'avance."},
+    {day:2, time:"10:00", title:"Quartier gothique et Las Ramblas", notes:"Marché de la Boqueria à ne pas manquer."}
+  ],
+  "barcelona": [
+    {day:1, time:"09:00", title:"Sagrada Família", notes:"Réservation obligatoire, créneaux limités."},
+    {day:1, time:"15:00", title:"Parc Güell", notes:"Réservez la zone monumentale à l'avance."},
+    {day:2, time:"10:00", title:"Quartier gothique et Las Ramblas", notes:"Marché de la Boqueria à ne pas manquer."}
+  ],
+  "madrid": [
+    {day:1, time:"10:00", title:"Musée du Prado", notes:"Une des plus grandes collections d'art au monde."},
+    {day:1, time:"18:00", title:"Parc du Retiro", notes:"Location de barque sur le lac."},
+    {day:2, time:"11:00", title:"Palais Royal", notes:"Résidence officielle, visite guidée disponible."}
+  ],
+  "amsterdam": [
+    {day:1, time:"10:00", title:"Rijksmuseum", notes:"Rembrandt et Vermeer, réservez en ligne."},
+    {day:1, time:"14:00", title:"Balade en canal", notes:"La meilleure façon de découvrir la ville."},
+    {day:2, time:"10:00", title:"Maison d'Anne Frank", notes:"Billets à date fixe, à réserver bien à l'avance."}
+  ],
+  "berlin": [
+    {day:1, time:"09:00", title:"Porte de Brandebourg et Reichstag", notes:"Réservez la coupole du Reichstag gratuitement."},
+    {day:1, time:"14:00", title:"East Side Gallery", notes:"Plus long tronçon préservé du mur de Berlin."},
+    {day:2, time:"10:00", title:"Île aux musées", notes:"Cinq musées réunis sur une seule île."}
+  ],
+  "lisbonne": [
+    {day:1, time:"09:00", title:"Quartier de Belém", notes:"Tour de Belém et pâtisseries pastéis de nata."},
+    {day:1, time:"15:00", title:"Alfama en tramway 28", notes:"Le quartier historique, vues sur le Tage."},
+    {day:2, time:"10:00", title:"Château Saint-Georges", notes:"Vue panoramique sur toute la ville."}
+  ],
+  "lisbon": [
+    {day:1, time:"09:00", title:"Quartier de Belém", notes:"Tour de Belém et pâtisseries pastéis de nata."},
+    {day:1, time:"15:00", title:"Alfama en tramway 28", notes:"Le quartier historique, vues sur le Tage."},
+    {day:2, time:"10:00", title:"Château Saint-Georges", notes:"Vue panoramique sur toute la ville."}
+  ],
+  "athenes": [
+    {day:1, time:"08:00", title:"Acropole et Parthénon", notes:"Venez tôt pour éviter la chaleur et la foule."},
+    {day:1, time:"14:00", title:"Musée de l'Acropole", notes:"Juste en contrebas du site."},
+    {day:2, time:"10:00", title:"Quartier de Plaka", notes:"Ruelles pittoresques au pied de l'Acropole."}
+  ],
+  "athens": [
+    {day:1, time:"08:00", title:"Acropole et Parthénon", notes:"Venez tôt pour éviter la chaleur et la foule."},
+    {day:1, time:"14:00", title:"Musée de l'Acropole", notes:"Juste en contrebas du site."},
+    {day:2, time:"10:00", title:"Quartier de Plaka", notes:"Ruelles pittoresques au pied de l'Acropole."}
+  ],
+  "prague": [
+    {day:1, time:"09:00", title:"Château de Prague", notes:"Le plus grand complexe castral ancien au monde."},
+    {day:1, time:"15:00", title:"Pont Charles et vieille ville", notes:"Horloge astronomique sur la place."},
+    {day:2, time:"10:00", title:"Quartier juif (Josefov)", notes:"Synagogues historiques et ancien cimetière."}
+  ],
+  "vienne": [
+    {day:1, time:"09:00", title:"Château de Schönbrunn", notes:"Ancienne résidence d'été des Habsbourg."},
+    {day:1, time:"15:00", title:"Cathédrale Saint-Étienne", notes:"Cœur du centre historique."},
+    {day:2, time:"10:00", title:"Musée d'Histoire de l'Art", notes:"Collection impériale, œuvres de Bruegel et Vermeer."}
+  ],
+  "vienna": [
+    {day:1, time:"09:00", title:"Château de Schönbrunn", notes:"Ancienne résidence d'été des Habsbourg."},
+    {day:1, time:"15:00", title:"Cathédrale Saint-Étienne", notes:"Cœur du centre historique."},
+    {day:2, time:"10:00", title:"Musée d'Histoire de l'Art", notes:"Collection impériale, œuvres de Bruegel et Vermeer."}
+  ],
+  "budapest": [
+    {day:1, time:"09:00", title:"Château de Buda et Bastion des pêcheurs", notes:"Vue superbe sur le Danube et Pest."},
+    {day:1, time:"16:00", title:"Bains Széchenyi", notes:"Parmi les plus grands bains thermaux en plein air d'Europe."},
+    {day:2, time:"10:00", title:"Parlement hongrois", notes:"Visite guidée à réserver à l'avance."}
+  ],
+  "venise": [
+    {day:1, time:"09:00", title:"Place et basilique Saint-Marc", notes:"Arrivez tôt pour éviter la foule."},
+    {day:1, time:"15:00", title:"Balade en gondole", notes:"Prix fixé par la ville, négociable en basse saison."},
+    {day:2, time:"10:00", title:"Île de Murano", notes:"Célèbre pour le verre soufflé artisanal."}
+  ],
+  "venice": [
+    {day:1, time:"09:00", title:"Place et basilique Saint-Marc", notes:"Arrivez tôt pour éviter la foule."},
+    {day:1, time:"15:00", title:"Balade en gondole", notes:"Prix fixé par la ville, négociable en basse saison."},
+    {day:2, time:"10:00", title:"Île de Murano", notes:"Célèbre pour le verre soufflé artisanal."}
+  ],
+  "florence": [
+    {day:1, time:"09:00", title:"Galerie des Offices", notes:"Réservation fortement conseillée."},
+    {day:1, time:"15:00", title:"Duomo et coupole de Brunelleschi", notes:"Montée possible pour une vue panoramique."},
+    {day:2, time:"10:00", title:"Ponte Vecchio et Oltrarno", notes:"Quartier des artisans, moins touristique."}
+  ],
+  "santorin": [
+    {day:1, time:"08:00", title:"Village d'Oia", notes:"Coucher de soleil emblématique, venez tôt pour une bonne place."},
+    {day:2, time:"10:00", title:"Plage rouge (Akrotiri)", notes:"Falaises volcaniques spectaculaires."}
+  ],
+  "santorini": [
+    {day:1, time:"08:00", title:"Village d'Oia", notes:"Coucher de soleil emblématique, venez tôt pour une bonne place."},
+    {day:2, time:"10:00", title:"Plage rouge (Akrotiri)", notes:"Falaises volcaniques spectaculaires."}
+  ],
+  "mykonos": [
+    {day:1, time:"09:00", title:"Petite Venise et moulins à vent", notes:"Cœur pittoresque de Mykonos-ville."},
+    {day:2, time:"10:00", title:"Plage de Paradise ou Super Paradise", notes:"Ambiance festive et beach clubs."}
+  ],
+  "seville": [
+    {day:1, time:"09:00", title:"Alcázar de Séville", notes:"Palais mauresque, réservez en ligne."},
+    {day:1, time:"18:00", title:"Spectacle de flamenco", notes:"Quartier de Triana, ambiance authentique."}
+  ],
+  "casablanca": [
+    {day:1, time:"09:00", title:"Mosquée Hassan II", notes:"Une des plus grandes mosquées au monde, visite guidée possible."},
+    {day:1, time:"16:00", title:"Corniche d'Ain Diab", notes:"Bord de mer, cafés et restaurants."}
+  ],
+  "tunis": [
+    {day:1, time:"09:00", title:"Médina de Tunis", notes:"Classée UNESCO, souks et artisanat."},
+    {day:1, time:"15:00", title:"Site archéologique de Carthage", notes:"Vestiges antiques face à la mer."}
+  ],
+  "alger": [
+    {day:1, time:"09:00", title:"Casbah d'Alger", notes:"Classée UNESCO, dédale de ruelles historiques."},
+    {day:1, time:"15:00", title:"Jardin d'essai du Hamma", notes:"Grand jardin botanique face à la baie."}
+  ],
+  "dakar": [
+    {day:1, time:"09:00", title:"Île de Gorée", notes:"Site mémoriel UNESCO, accessible en ferry."},
+    {day:1, time:"15:00", title:"Monument de la Renaissance africaine", notes:"Vue panoramique sur la ville."}
+  ],
+  "abidjan": [
+    {day:1, time:"09:00", title:"Cathédrale Saint-Paul", notes:"Architecture moderne remarquable."},
+    {day:1, time:"15:00", title:"Quartier du Plateau", notes:"Centre d'affaires, gratte-ciels."}
+  ],
+  "nairobi": [
+    {day:1, time:"08:00", title:"Nairobi National Park", notes:"Safari à quelques minutes seulement du centre-ville."},
+    {day:1, time:"15:00", title:"Giraffe Centre", notes:"Possibilité de nourrir des girafes de Rothschild."}
+  ],
+  "le cap": [
+    {day:1, time:"08:00", title:"Table Mountain", notes:"Téléphérique ou randonnée, réservez si possible."},
+    {day:1, time:"15:00", title:"Cape of Good Hope", notes:"Pointe sud-ouest du continent africain."}
+  ],
+  "cape town": [
+    {day:1, time:"08:00", title:"Table Mountain", notes:"Téléphérique ou randonnée, réservez si possible."},
+    {day:1, time:"15:00", title:"Cape of Good Hope", notes:"Pointe sud-ouest du continent africain."}
+  ],
+  "zanzibar": [
+    {day:1, time:"09:00", title:"Stone Town", notes:"Vieille ville UNESCO, ruelles et marché aux épices."},
+    {day:2, time:"09:00", title:"Plages de Nungwi ou Kendwa", notes:"Sable blanc, eaux turquoise."}
+  ],
+  "abu dhabi": [
+    {day:1, time:"09:00", title:"Grande Mosquée Cheikh Zayed", notes:"Une des plus grandes mosquées au monde, tenue correcte requise."},
+    {day:1, time:"15:00", title:"Louvre Abu Dhabi", notes:"Architecture spectaculaire, collection internationale."}
+  ],
+  "doha": [
+    {day:1, time:"09:00", title:"Musée national du Qatar", notes:"Architecture signée Jean Nouvel."},
+    {day:1, time:"16:00", title:"Souk Waqif", notes:"Marché traditionnel restauré, restaurants le soir."}
+  ],
+  "beyrouth": [
+    {day:1, time:"09:00", title:"Centre-ville et Place des Martyrs", notes:"Architecture reconstruite après la guerre."},
+    {day:1, time:"15:00", title:"Corniche de Beyrouth", notes:"Promenade en bord de mer, Pigeon Rocks."}
+  ],
+  "beirut": [
+    {day:1, time:"09:00", title:"Centre-ville et Place des Martyrs", notes:"Architecture reconstruite après la guerre."},
+    {day:1, time:"15:00", title:"Corniche de Beyrouth", notes:"Promenade en bord de mer, Pigeon Rocks."}
+  ],
+  "amman": [
+    {day:1, time:"09:00", title:"Citadelle d'Amman", notes:"Vue panoramique, vestiges romains et omeyyades."},
+    {day:1, time:"15:00", title:"Théâtre romain", notes:"Encore utilisé pour des spectacles aujourd'hui."}
+  ],
+  "riyad": [
+    {day:1, time:"09:00", title:"Diriyah (At-Turaif)", notes:"Site UNESCO, berceau de la dynastie saoudienne."},
+    {day:1, time:"16:00", title:"Kingdom Centre Tower", notes:"Skybridge avec vue sur la ville."}
+  ],
+  "riyadh": [
+    {day:1, time:"09:00", title:"Diriyah (At-Turaif)", notes:"Site UNESCO, berceau de la dynastie saoudienne."},
+    {day:1, time:"16:00", title:"Kingdom Centre Tower", notes:"Skybridge avec vue sur la ville."}
+  ],
+  "tokyo": [
+    {day:1, time:"09:00", title:"Temple Senso-ji à Asakusa", notes:"Le plus ancien temple de Tokyo."},
+    {day:1, time:"15:00", title:"Croisement de Shibuya", notes:"Le passage piéton le plus fréquenté au monde."},
+    {day:2, time:"10:00", title:"Marché de Tsukiji (extérieur)", notes:"Street food et produits de la mer frais."}
+  ],
+  "kyoto": [
+    {day:1, time:"09:00", title:"Fushimi Inari-taisha", notes:"Milliers de torii rouges, montée possible jusqu'au sommet."},
+    {day:1, time:"15:00", title:"Forêt de bambous d'Arashiyama", notes:"Lumière particulière, venez tôt pour le calme."}
+  ],
+  "bangkok": [
+    {day:1, time:"09:00", title:"Grand Palais et Wat Phra Kaew", notes:"Tenue correcte exigée, épaules et genoux couverts."},
+    {day:1, time:"16:00", title:"Marché flottant ou Wat Arun", notes:"Coucher de soleil depuis la rive du Chao Phraya."}
+  ],
+  "singapour": [
+    {day:1, time:"09:00", title:"Gardens by the Bay", notes:"Supertree Grove et dômes climatisés."},
+    {day:1, time:"18:00", title:"Marina Bay Sands SkyPark", notes:"Vue panoramique au coucher du soleil."}
+  ],
+  "singapore": [
+    {day:1, time:"09:00", title:"Gardens by the Bay", notes:"Supertree Grove et dômes climatisés."},
+    {day:1, time:"18:00", title:"Marina Bay Sands SkyPark", notes:"Vue panoramique au coucher du soleil."}
+  ],
+  "bali": [
+    {day:1, time:"08:00", title:"Rizières en terrasses de Tegalalang", notes:"Venez tôt pour la lumière et moins de monde."},
+    {day:1, time:"16:00", title:"Temple Tanah Lot", notes:"Temple sur un rocher, superbe au coucher du soleil."}
+  ],
+  "kuala lumpur": [
+    {day:1, time:"09:00", title:"Tours Petronas", notes:"Réservez le pont d'observation à l'avance."},
+    {day:1, time:"15:00", title:"Grottes de Batu", notes:"Temple hindou, 272 marches colorées."}
+  ],
+  "hanoi": [
+    {day:1, time:"09:00", title:"Vieux quartier de Hanoï (36 rues)", notes:"Street food et artisanat traditionnel."},
+    {day:1, time:"15:00", title:"Mausolée Hô Chi Minh", notes:"Horaires stricts, tenue respectueuse requise."}
+  ],
+  "seoul": [
+    {day:1, time:"09:00", title:"Palais Gyeongbokgung", notes:"Relève de la garde à heures fixes."},
+    {day:1, time:"15:00", title:"Quartier de Myeongdong", notes:"Shopping et street food coréenne."}
+  ],
+  "hong kong": [
+    {day:1, time:"09:00", title:"Victoria Peak", notes:"Vue emblématique, tram à crémaillère."},
+    {day:1, time:"18:00", title:"Symphony of Lights", notes:"Spectacle son et lumière sur le port."}
+  ],
+  "shanghai": [
+    {day:1, time:"09:00", title:"Bund et skyline de Pudong", notes:"Contraste entre architecture coloniale et gratte-ciels."},
+    {day:1, time:"15:00", title:"Jardin Yuyuan", notes:"Jardin classique chinois au cœur de la vieille ville."}
+  ],
+  "delhi": [
+    {day:1, time:"09:00", title:"Fort Rouge", notes:"Forteresse moghole, site UNESCO."},
+    {day:1, time:"15:00", title:"Qutub Minar", notes:"Plus haut minaret en briques au monde."}
+  ],
+  "mumbai": [
+    {day:1, time:"09:00", title:"Porte de l'Inde", notes:"Monument emblématique face à la mer d'Arabie."},
+    {day:1, time:"15:00", title:"Quartier colonial de Fort", notes:"Architecture victorienne, gare Chhatrapati Shivaji."}
+  ],
+  "maldives": [
+    {day:1, time:"09:00", title:"Snorkeling sur le récif de l'hôtel", notes:"Eaux cristallines, tortues et raies fréquentes."},
+    {day:2, time:"09:00", title:"Excursion île locale", notes:"Découverte de la culture maldivienne."}
+  ],
+  "male": [
+    {day:1, time:"09:00", title:"Snorkeling sur le récif de l'hôtel", notes:"Eaux cristallines, tortues et raies fréquentes."},
+    {day:2, time:"09:00", title:"Excursion île locale", notes:"Découverte de la culture maldivienne."}
+  ],
+  "new york": [
+    {day:1, time:"09:00", title:"Statue de la Liberté et Ellis Island", notes:"Réservez le ferry à l'avance."},
+    {day:1, time:"15:00", title:"Central Park", notes:"Location de vélo pour explorer plus vite."},
+    {day:2, time:"10:00", title:"Times Square et Broadway", notes:"Billets de spectacle souvent à prix réduit le jour même."}
+  ],
+  "los angeles": [
+    {day:1, time:"10:00", title:"Hollywood Walk of Fame", notes:"Panneau Hollywood visible depuis Griffith Observatory."},
+    {day:1, time:"16:00", title:"Santa Monica Pier", notes:"Coucher de soleil sur le Pacifique."}
+  ],
+  "miami": [
+    {day:1, time:"10:00", title:"South Beach", notes:"Architecture Art déco d'Ocean Drive."},
+    {day:1, time:"16:00", title:"Little Havana", notes:"Ambiance cubaine, cafés et musique live."}
+  ],
+  "montreal": [
+    {day:1, time:"09:00", title:"Vieux-Montréal et Vieux-Port", notes:"Basilique Notre-Dame, pavés et calèches."},
+    {day:1, time:"15:00", title:"Mont Royal", notes:"Belvédère avec vue sur toute la ville."}
+  ],
+  "mexico": [
+    {day:1, time:"09:00", title:"Zócalo et cathédrale métropolitaine", notes:"Cœur historique de Mexico."},
+    {day:1, time:"15:00", title:"Teotihuacán", notes:"Pyramides du Soleil et de la Lune, excursion demi-journée."}
+  ],
+  "rio de janeiro": [
+    {day:1, time:"08:00", title:"Christ Rédempteur", notes:"Train à crémaillère depuis Cosme Velho."},
+    {day:1, time:"16:00", title:"Pain de Sucre", notes:"Téléphérique, coucher de soleil recommandé."}
+  ],
+  "buenos aires": [
+    {day:1, time:"09:00", title:"Quartier de La Boca", notes:"Maisons colorées de Caminito."},
+    {day:1, time:"20:00", title:"Spectacle de tango à San Telmo", notes:"Nombreuses milongas et dîners-spectacles."}
+  ],
+  "cancun": [
+    {day:1, time:"09:00", title:"Zone hôtelière et plages", notes:"Sable blanc, eaux turquoise des Caraïbes."},
+    {day:2, time:"09:00", title:"Chichén Itzá", notes:"Site maya UNESCO, excursion à la journée."}
+  ],
+  "sydney": [
+    {day:1, time:"09:00", title:"Opéra de Sydney et Harbour Bridge", notes:"Vue depuis les Royal Botanic Gardens."},
+    {day:1, time:"15:00", title:"Bondi Beach", notes:"Balade côtière jusqu'à Coogee."}
+  ]
+};
+
+const GENERIC_SUGGESTIONS = [
+  {day:1, time:"09:00", title:"Visite du centre historique", notes:"Partez tôt pour profiter du calme et de la lumière."},
+  {day:1, time:"13:00", title:"Déjeuner dans une adresse locale recommandée", notes:"Demandez conseil à votre hôtel."},
+  {day:2, time:"10:00", title:"Marché ou souk local", notes:"Bon endroit pour l'artisanat et les spécialités."},
+  {day:2, time:"18:00", title:"Point de vue au coucher du soleil", notes:"Repérez un bon spot en amont dans la journée."}
+];
+
+function openItinSuggestions(stageId){
+  const t = trip();
+  const s = t.stages.find(x=>x.id===stageId);
+  if(!s) return;
+  const key = normName(s.name);
+  const known = ITIN_SUGGESTIONS[key];
+  const list = known || GENERIC_SUGGESTIONS;
+  const maxDay = Math.max(1, daysBetween(s.start, s.end)+1);
+  openDrawer(`Suggestions — ${s.name}`, `
+    <div class="fieldnote" style="margin-top:0">À valider ou ignorer. Jour 1 correspond au ${fmtDate(s.start)}.</div>
+    ${list.map((it,i)=>`
+      <label class="row" style="gap:8px;align-items:flex-start;margin-bottom:10px">
+        <input type="checkbox" class="itin-chk" data-i="${i}" style="width:auto;margin-top:3px" checked>
+        <span style="margin:0;font-size:13.5px">
+          <b>J${Math.min(it.day,maxDay)}</b> · ${it.time?esc(it.time)+" · ":""}${esc(it.title)}
+          ${it.notes?`<br><span style="font-size:11.5px;color:var(--text-faint)">${esc(it.notes)}</span>`:""}
+        </span>
+      </label>`).join("")}
+    ${known ? "" : `<div class="fieldnote">Destination pas encore répertoriée dans la bibliothèque — voici des idées génériques. Demandez-moi des suggestions plus précises pour ${esc(s.name)} si besoin.</div>`}
+  `, [
+    {label:"Ajouter la sélection", cls:"pri", act:()=>{
+      const checks = [...document.querySelectorAll(".itin-chk:checked")];
+      checks.forEach(c=>{
+        const it = list[+c.dataset.i];
+        const dayN = Math.min(it.day, maxDay) - 1;
+        const date = d2s(new Date(s2d(s.start).getTime() + dayN*864e5));
+        t.acts.push({id:uid(), date, time:it.time||"", title:it.title, stage:s.id, cat:"Excursions", notes:it.notes||"", img:"", done:false, flightNo:"", checkin:"", gyg:""});
+      });
+      save(); closeDrawer(); render(); toast(checks.length ? `${checks.length} ajoutée(s) à l'itinéraire` : "Rien de sélectionné");
+    }},
+    {label:"Fermer", act:closeDrawer}
+  ]);
 }
 
 function tripSection(x){
@@ -1262,7 +1660,7 @@ function openTripSettings(){
 
 function editStage(id, fromSettings){
   const t = trip();
-  const s = t.stages.find(x=>x.id===id) || {id:"",name:"",start:t.start,end:t.end,img:"",lat:null,lng:null,driveTime:"",hotelName:"",hotelAddress:"",hotelHow:"",hotelLink:""};
+  const s = t.stages.find(x=>x.id===id) || {id:"",name:"",start:t.start,end:t.end,img:"",driveTime:"",hotelName:"",hotelAddress:"",hotelHow:"",hotelLink:"",hotelPaid:false,hotelPayDeadline:"",hotelTaskId:""};
   let img = s.img;
   const back = () => { closeDrawer(); if(fromSettings) openTripSettings(); else render(); };
   openDrawer(id?"Modifier l'étape":"Nouvelle étape", `
@@ -1276,8 +1674,16 @@ function editStage(id, fromSettings){
       <button class="btn" id="btnClr" type="button">Retirer</button>
     </div>
     <div class="hr"></div>
-    <label><span>Hôtel</span><input id="f-hname" value="${esc(s.hotelName)}" placeholder="Nom de l'hôtel"></label>
+    <div class="hotel-sugg">
+      <label><span>Hôtel</span><input id="f-hname" value="${esc(s.hotelName)}" placeholder="Tapez pour chercher…" autocomplete="off"></label>
+      <div class="hotel-sugg-list" id="hotelSuggList" hidden></div>
+    </div>
     <label><span>Adresse</span><input id="f-haddr" value="${esc(s.hotelAddress)}" placeholder="Adresse"></label>
+    <label class="row" style="gap:8px;align-items:center"><input type="checkbox" id="f-hpaid" ${s.hotelPaid?"checked":""} style="width:auto"><span style="margin:0">Réservation payée</span></label>
+    <div id="hdeadlineWrap" style="${s.hotelPaid?"display:none":""}">
+      <label><span>Date limite de paiement</span><input type="date" id="f-hdeadline" value="${s.hotelPayDeadline||""}"></label>
+      <div class="fieldnote">Un rappel sera ajouté aux Formalités 2 jours avant — utile pour Booking et son paiement différé.</div>
+    </div>
     <label><span>Trajet depuis l'aéroport (résumé court)</span><input id="f-drive" value="${esc(s.driveTime)}" placeholder="25 min en taxi"></label>
     <div class="fieldnote">Affiché dans la case du prochain vol, à l'Accueil.</div>
     <label><span>Comment y aller (détail)</span><textarea id="f-hhow" placeholder="Taxi depuis l'aéroport, compteur ou tarif fixe…">${esc(s.hotelHow)}</textarea></label>
@@ -1290,20 +1696,79 @@ function editStage(id, fromSettings){
       const o = {id:s.id||uid(), name, start:r.start||s.start, end:r.end||s.end, img,
                  driveTime:$("#f-drive").value.trim(),
                  hotelName:$("#f-hname").value.trim(), hotelAddress:$("#f-haddr").value.trim(),
-                 hotelHow:$("#f-hhow").value.trim(), hotelLink:$("#f-hlink").value.trim()};
+                 hotelHow:$("#f-hhow").value.trim(), hotelLink:$("#f-hlink").value.trim(),
+                 hotelPaid:$("#f-hpaid").checked, hotelPayDeadline:$("#f-hdeadline").value, hotelTaskId:s.hotelTaskId||""};
+      syncHotelPaymentTask(t, o);
       if(s.id) t.stages[t.stages.findIndex(x=>x.id===s.id)] = o; else t.stages.push(o);
       t.stages.sort((a,b)=>(a.start||"").localeCompare(b.start||""));
       save(); back();
     }},
     {label:"Annuler", act:back}
   ]);
+  $("#f-hpaid").addEventListener("change", e => { $("#hdeadlineWrap").style.display = e.target.checked ? "none" : ""; });
+  wireHotelSuggest(s.name || t.name);
   paintCalendar("stage");
   $("#btnPick").onclick = () => pickImage(d => { img = d; $("#thumbImg").src = d; $("#thumbImg").style.display=""; });
   $("#btnClr").onclick = () => { img = ""; $("#thumbImg").style.display="none"; };
 }
+/* ============================================================ Suggestions d'hôtels (OpenStreetMap Nominatim, gratuit, sans clé) ============================================================ */
+let hotelSuggTimer;
+async function searchHotelSuggestions(query, hint){
+  if(!query || query.trim().length < 3) return [];
+  try{
+    const q = encodeURIComponent(query.trim() + (hint ? " " + hint : ""));
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&addressdetails=1`);
+    const data = await r.json();
+    return data.map(d => ({name:(d.display_name||"").split(",")[0], address:d.display_name||""}));
+  }catch(e){ return []; }
+}
+function wireHotelSuggest(hint){
+  const input = $("#f-hname"); const list = $("#hotelSuggList");
+  if(!input || !list) return;
+  input.addEventListener("input", () => {
+    clearTimeout(hotelSuggTimer);
+    const q = input.value;
+    hotelSuggTimer = setTimeout(async () => {
+      if(q.trim().length < 3){ list.hidden = true; return; }
+      const results = await searchHotelSuggestions(q, hint);
+      if(!$("#hotelSuggList")) return; // le formulaire a changé entre-temps
+      if(!results.length){ list.hidden = true; return; }
+      list.innerHTML = results.map((r,i)=>`<div class="hotel-sugg-item" data-i="${i}"><div class="n">${esc(r.name)}</div><div class="a">${esc(r.address)}</div></div>`).join("");
+      list.hidden = false;
+      list.querySelectorAll(".hotel-sugg-item").forEach((el,i)=>{
+        el.onclick = () => { $("#f-hname").value = results[i].name; $("#f-haddr").value = results[i].address; list.hidden = true; };
+      });
+    }, 450);
+  });
+}
+
+/* ============================================================ Rappel de paiement d'hôtel (auto-synchronisé avec Formalités) ============================================================ */
+function syncHotelPaymentTask(t, stage){
+  const idx = stage.hotelTaskId ? t.tasks.findIndex(x=>x.id===stage.hotelTaskId) : -1;
+  const needsReminder = stage.hotelName && !stage.hotelPaid && stage.hotelPayDeadline;
+  if(!needsReminder){
+    if(idx>=0) t.tasks.splice(idx,1);
+    stage.hotelTaskId = "";
+    return;
+  }
+  const dl = s2d(stage.hotelPayDeadline);
+  const reminderDue = d2s(new Date(dl.getTime() - 2*864e5));
+  const label = `Payer l'hôtel — ${stage.name}`;
+  const notes = `Date limite réelle : ${fmtDate(stage.hotelPayDeadline)} (ex. paiement différé Booking).`;
+  if(idx>=0){
+    Object.assign(t.tasks[idx], {label, due:reminderDue, notes, done:false});
+  } else {
+    const task = {id:uid(), label, due:reminderDue, notes, done:false};
+    t.tasks.push(task);
+    stage.hotelTaskId = task.id;
+  }
+}
+
 function delStage(id, fromSettings){
   confirmAction("Retirer cette étape ? Les activités et postes rattachés seront conservés, mais détachés.", ()=>{
     const t = trip();
+    const s = t.stages.find(x=>x.id===id);
+    if(s && s.hotelTaskId) t.tasks = t.tasks.filter(x=>x.id!==s.hotelTaskId);
     t.stages = t.stages.filter(s=>s.id!==id);
     t.acts.forEach(a=>{ if(a.stage===id) a.stage=""; });
     t.budget.forEach(b=>{ if(b.stage===id) b.stage=""; });
