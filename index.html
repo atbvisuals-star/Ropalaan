@@ -366,13 +366,20 @@ function ph(name){
 document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => { view = b.dataset.v; render(); }));
 
 function render(){
-  const t = trip();
   saveView(view);
+  if(!db.trips.length){
+    $("#tripNameBtn").textContent = "ROPALAAN";
+    $("#tripSub").textContent = "";
+    document.querySelectorAll(".tab").forEach(b => b.classList.remove("on"));
+    VIEWS.forEach(v => $("#v-"+v).hidden = v !== "accueil");
+    $("#v-accueil").innerHTML = `<div class="empty" style="padding:70px 20px">Aucun voyage.
+      <div style="margin-top:12px"><button class="btn pri" onclick="newTrip()">+ Nouveau voyage</button></div>
+    </div>`;
+    return;
+  }
+  const t = trip();
   $("#tripNameBtn").textContent = "ROPALAAN";
-  const bits = [];
-  if(t.start && t.end) bits.push(fmtDate(t.start)+" → "+fmtDate(t.end));
-  bits.push(t.travelers+" voy.");
-  $("#tripSub").textContent = bits.join(" · ");
+  $("#tripSub").textContent = t.name;
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.v === view));
   VIEWS.forEach(v => $("#v-"+v).hidden = v !== view);
   ({accueil:renderAccueil, itineraire:renderItineraire, budget:renderBudget, formalites:renderFormalites, incontournables:renderIncontournables, carnet:renderCarnet})[view](t);
@@ -1064,11 +1071,11 @@ function newTrip(){
 }
 function dupTrip(id){ const src = db.trips.find(t=>t.id===id); const c = JSON.parse(JSON.stringify(src)); c.id = uid(); c.name = src.name + " (copie)"; db.trips.push(c); db.activeId = c.id; expanded.clear(); expandedInit = false; expandedHi.clear(); expandedHiInit = false; expandedTripId = c.id; save(); closeDrawer(); render(); toast("Voyage dupliqué"); }
 function delTrip(id){
-  if(db.trips.length === 1){ toast("Gardez au moins un voyage"); return; }
   const t = db.trips.find(x=>x.id===id);
+  if(!t) return;
   if(!confirm(`Supprimer « ${t.name} » ? Cette action est définitive.`)) return;
   db.trips = db.trips.filter(x=>x.id!==id);
-  if(db.activeId===id) db.activeId = db.trips[0].id;
+  if(db.activeId===id) db.activeId = db.trips[0]?.id || null;
   if(expandedTripId===id) expandedTripId = db.activeId;
   save(); closeDrawer(); render(); toast("Voyage supprimé");
 }
